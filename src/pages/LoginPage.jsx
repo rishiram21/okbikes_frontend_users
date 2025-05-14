@@ -58,8 +58,8 @@ const LoginPage = () => {
   };
 
   const verifyOTP = async () => {
-    if (otp.length !== 6) {
-      setError("Enter a valid 6-digit OTP.");
+    if (otp.length !== 4) { 
+      setError("Enter a valid 4-digit OTP.");
       return;
     }
 
@@ -101,6 +101,12 @@ const LoginPage = () => {
       e.preventDefault();
       action();
     }
+  };
+
+  // Handle resend OTP
+  const handleResendOTP = () => {
+    setOtp("");
+    sendOTP();
   };
 
   // Success animation component
@@ -282,56 +288,73 @@ const LoginPage = () => {
 
             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-            <input
-              type="tel"
-              placeholder="Enter 10-digit mobile number"
-              className="border p-2 w-full mb-2"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              maxLength={10}
-              ref={mobileInputRef}
-              onKeyPress={(e) => !otpSent && handleKeyPress(e, sendOTP)}
-              autoFocus
-            />
+            <div className="mb-4">
+              <input
+                type="tel"
+                placeholder="Enter 10-digit mobile number"
+                className="border p-2 w-full mb-2 rounded"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                maxLength={10}
+                ref={mobileInputRef}
+                onKeyPress={(e) => !otpSent && handleKeyPress(e, sendOTP)}
+                disabled={otpSent && loading}
+                autoFocus
+              />
 
-            {!otpSent ? (
-              <button
-                onClick={sendOTP}
-                disabled={loading || mobile.length !== 10}
-                className={`bg-blue-500 text-white px-4 py-2 w-full ${
-                  loading || mobile.length !== 10 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {loading ? "Sending..." : "Send OTP"}
-              </button>
-            ) : (
-              <>
-                <input
-                  type="number"
-                  placeholder="Enter 6-digit OTP"
-                  className="border p-2 w-full mt-2"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                  ref={otpInputRef}
-                  onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
-                />
+              {!otpSent ? (
                 <button
-                  onClick={verifyOTP}
-                  disabled={loading || otp.length !== 6}
-                  className={`bg-green-500 text-white px-4 py-2 w-full mt-2 ${
-                    loading ? "opacity-50 cursor-not-allowed" : ""
+                  onClick={sendOTP}
+                  disabled={loading || mobile.length !== 10}
+                  className={`bg-blue-500 text-white px-4 py-2 w-full rounded hover:bg-blue-600 transition duration-200 ${
+                    loading || mobile.length !== 10 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                   }`}
                 >
-                  {loading ? "Verifying..." : "Verify OTP"}
+                  {loading ? "Sending..." : "Send OTP"}
                 </button>
-              </>
-            )}
+              ) : (
+                <div className="space-y-4">
+                  <input
+                    type="tel"
+                    placeholder="Enter 4-digit OTP"
+                    className="border p-2 w-full rounded"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    maxLength={4}
+                    ref={otpInputRef}
+                    onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
+                  />
+                  
+                  <button
+                    onClick={verifyOTP}
+                    disabled={loading || otp.length !== 4}
+                    className={`bg-green-500 text-white px-4 py-2 w-full rounded hover:bg-green-600 transition duration-200 ${
+                      loading || otp.length !== 4 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
+                  >
+                    {loading ? "Verifying..." : "Verify OTP"}
+                  </button>
+                  
+                  <div className="text-center">
+                    <button
+                      onClick={handleResendOTP}
+                      disabled={loading}
+                      className={`text-blue-500 underline text-sm ${
+                        loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                    >
+                      Resend OTP
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            <p className="text-sm mt-4 text-center">
+            <p className="text-sm mt-6 text-center">
               Don't have an account?{" "}
               <button
                 onClick={() => navigate("/register")}
-                className="text-blue-500 underline"
+                className="text-blue-500 underline hover:text-blue-700 transition duration-200 cursor-pointer"
               >
                 Register here
               </button>

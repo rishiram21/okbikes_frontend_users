@@ -13,7 +13,6 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
-  const refreshInterval = 60000; // 60 seconds
 
   // Create refs for the dropdown and button
   const dropdownRef = useRef(null);
@@ -31,11 +30,7 @@ const Navbar = () => {
 
     // Add scroll event listener
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -97,10 +92,6 @@ const Navbar = () => {
     };
 
     fetchUserData();
-
-    const intervalId = setInterval(fetchUserData, refreshInterval);
-
-    return () => clearInterval(intervalId);
   }, [navigate]);
 
   // Add click outside listener to close dropdown
@@ -236,6 +227,14 @@ const Navbar = () => {
                   ref={dropdownRef}
                   className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-40"
                 >
+
+                  <Link
+                    to="/"
+                    className="block px-3 py-3 text-base font-medium text-gray-800 hover:bg-orange-50 hover:text-orange-600 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
                   <Link
                     to="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
@@ -302,6 +301,15 @@ const Navbar = () => {
             )}
 
             <div className="border-t border-gray-200 my-2"></div>
+
+            <Link
+              to="/"
+              className="block px-3 py-3 text-base font-medium text-gray-800 hover:bg-orange-50 hover:text-orange-600 rounded-md"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+
 
             <Link
               to="/profile"

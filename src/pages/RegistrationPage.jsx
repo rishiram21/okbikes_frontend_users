@@ -98,8 +98,8 @@ const RegistrationPage = () => {
   };
 
   const verifyOTP = async () => {
-    if (otp.length !== 6) {
-      setError("Enter a valid 6-digit OTP.");
+    if (otp.length !== 4) {
+      setError("Enter a valid 4-digit OTP.");
       return;
     }
 
@@ -408,17 +408,17 @@ const RegistrationPage = () => {
             ) : (
               <>
                 <input
-                  type="number"
-                  placeholder="Enter 6-digit OTP"
+                  type="tel"
+                  placeholder="Enter 4-digit OTP"
                   className="border p-2 w-full mb-2"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+                  onChange={(e) => setOtp(e.target.value.slice(0, 4))}
                   ref={otpInputRef}
                   onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
                 />
                 <button
                   onClick={verifyOTP}
-                  disabled={loading || otp.length !== 6}
+                  disabled={loading || otp.length !== 4}
                   className={`bg-green-500 text-white px-4 py-2 w-full ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}

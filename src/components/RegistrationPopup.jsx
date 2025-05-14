@@ -32,9 +32,35 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
     setTimeout(() => setAlertMessage(null), 3000);
   };
 
+  const validateName = (name) => {
+    return name.trim() !== "" && /^[a-zA-Z\s]+$/.test(name);
+  };
+
+  const validateMobile = (mobile) => {
+    return mobile.length === 10;
+  };
+
+  const validateFiles = () => {
+    return aadharFront && aadharBack && dlFront;
+  };
+
+  const validateOTP = (otp) => {
+    return otp.length === 4;
+  };
+
   const sendOTP = async () => {
-    if (mobile.length !== 10) {
+    if (!validateName(userName)) {
+      setError("Enter a valid name.");
+      return;
+    }
+
+    if (!validateMobile(mobile)) {
       setError("Enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!validateFiles()) {
+      setError("Please upload all required documents.");
       return;
     }
 
@@ -68,8 +94,8 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
   };
 
   const verifyOTP = async () => {
-    if (otp.length !== 6) {
-      setError("Enter a valid 6-digit OTP.");
+    if (!validateOTP(otp)) {
+      setError("Enter a valid 4-digit OTP.");
       return;
     }
 
@@ -162,8 +188,8 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
         />
 
         <label>Aadhar Front/Back</label>
-        <input type="file" accept="image/*" className="border p-2 w-full mb-2" onChange={(e) => handleFileChange(e, setAadharFront)} />
-        <input type="file" accept="image/*" className="border p-2 w-full mb-2" onChange={(e) => handleFileChange(e, setAadharBack)} />
+        <input type="file" accept="image/*" className="border p-2 w-full mb-2" required onChange={(e) => handleFileChange(e, setAadharFront)} />
+        <input type="file" accept="image/*" className="border p-2 w-full mb-2" required onChange={(e) => handleFileChange(e, setAadharBack)} />
 
         <label>Driving License Front</label>
         <input type="file" accept="image/*" className="border p-2 w-full mb-2" onChange={(e) => handleFileChange(e, setDlFront)} />
@@ -171,23 +197,23 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
         {!otpSent ? (
           <button
             onClick={sendOTP}
-            disabled={loading || mobile.length !== 10}
-            className={`bg-blue-500 text-white px-4 py-2 w-full ${loading || mobile.length !== 10 ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles()}
+            className={`bg-blue-500 text-white px-4 py-2 w-full ${loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles() ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {loading ? "Sending..." : "Send OTP"}
           </button>
         ) : (
           <>
             <input
-              type="number"
-              placeholder="Enter 6-digit OTP"
+              type="tel"
+              placeholder="Enter 4-digit OTP"
               className="border p-2 w-full mt-2"
               value={otp}
-              onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+              onChange={(e) => setOtp(e.target.value.slice(0, 4))}
             />
             <button
               onClick={verifyOTP}
-              disabled={loading || otp.length !== 6}
+              disabled={loading || !validateOTP(otp)}
               className={`bg-green-500 text-white px-4 py-2 w-full mt-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading ? "Verifying..." : "Verify OTP"}

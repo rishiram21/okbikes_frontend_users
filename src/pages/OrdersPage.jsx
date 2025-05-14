@@ -6,7 +6,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useGlobalState } from "../context/GlobalStateContext";
 import { useAuth } from "../context/AuthContext";
-import Invoice from "./Invoice"; // Import the Invoice component
 
 const OrdersPage = () => {
   const navigate = useNavigate();
@@ -27,10 +26,6 @@ const OrdersPage = () => {
   });
   const [uploadType, setUploadType] = useState(null); // 'start' or 'end'
   const [orderLimit, setOrderLimit] = useState(1);
-  const [showInvoice, setShowInvoice] = useState(false); // State to manage invoice visibility
-  const [invoiceDetails, setInvoiceDetails] = useState(null); // State to store invoice details
-
-  const refreshInterval = 120000; // 60 seconds
 
   useEffect(() => {
     console.log("Token from AuthContext:", token);
@@ -93,8 +88,6 @@ const OrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
-    const intervalId = setInterval(fetchOrders, refreshInterval);
-    return () => clearInterval(intervalId);
   }, []);
 
   // Update displayed orders when orderLimit changes
@@ -181,8 +174,8 @@ const OrdersPage = () => {
 
       toast.success("Booking cancelled successfully!");
 
-      // Refresh the page
-      window.location.reload();
+      // Refresh the orders data
+      fetchOrders();
     } catch (err) {
       console.error("Error cancelling booking:", err);
       setError("Failed to cancel booking. Please try again.");
@@ -353,8 +346,8 @@ const OrdersPage = () => {
             )
           );
 
-          // Refresh the page
-          window.location.reload();
+          // Refresh the orders data
+          fetchOrders();
         } else {
           toast.error("Error starting trip: " + (data.message || "Unexpected error"));
         }
@@ -432,8 +425,8 @@ const OrdersPage = () => {
             )
           );
 
-          // Refresh the page
-          window.location.reload();
+          // Refresh the orders data
+          fetchOrders();
         } else {
           toast.error("Failed to end trip: " + (data.message || "Unexpected error"));
         }
@@ -447,58 +440,9 @@ const OrdersPage = () => {
     }
   };
 
-  // Function to fetch invoice details
-  const fetchInvoiceDetails = async (order) => {
-    try {
-      const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
-
-      if (!token) {
-        setError("User not authenticated. Please log in.");
-        return;
-      }
-
-      // Ensure bookingId is correctly retrieved from the order
-      const bookingId = order.booking.bookingId;
-      if (!bookingId) {
-        setError("Booking ID is missing from the order data.");
-        toast.error("Booking ID is missing from the order data.");
-        return;
-      }
-
-      // Fetch combined details for the order
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/booking/combined/${bookingId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const bookingDto = response.data;
-
-      // Prepare invoice details
-      const invoiceData = {
-        booking: bookingDto.booking,
-        userName: bookingDto.user.name,
-        userPhone: bookingDto.user.phoneNumber,
-        vehicleNumber: bookingDto.vehicle.vehicleRegistrationNumber,
-        vehicleModel: bookingDto.vehicle.model,
-        charges: [
-          { type: 'Damage', amount: bookingDto.booking.damage || 0 },
-          { type: 'Challan', amount: bookingDto.booking.challan || 0 },
-          { type: 'Additional', amount: bookingDto.booking.additionalCharges || 0 },
-        ],
-        challans: bookingDto.booking.challans || [],
-        damages: bookingDto.booking.damages || [],
-        packagePrice: bookingDto.vehiclePackage.price,
-        securityDeposit: bookingDto.vehiclePackage.deposit,
-      };
-
-      setInvoiceDetails(invoiceData);
-      setShowInvoice(true);
-    } catch (err) {
-      console.error("Error fetching invoice details:", err);
-      setError("Failed to fetch invoice details. Please try again.");
-      toast.error("Failed to fetch invoice details. Please try again.");
-    }
+  // Function to handle viewing the invoice
+  const handleViewInvoice = (order) => {
+    navigate(`/invoice/${order.booking.bookingId}`);
   };
 
   // Order card component to avoid duplication
@@ -617,7 +561,7 @@ const OrdersPage = () => {
         )}
         {order.booking.status === "COMPLETED" && (
           <button
-            onClick={() => fetchInvoiceDetails(order)}
+            onClick={() => handleViewInvoice(order)}
             className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600"
           >
             View Invoice
@@ -792,35 +736,6 @@ const OrdersPage = () => {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Invoice Modal */}
-      {showInvoice && invoiceDetails && (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl h-full overflow-y-auto">
-            <button
-              onClick={() => setShowInvoice(false)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <Invoice
-              booking={invoiceDetails.booking}
-              charges={invoiceDetails.charges}
-              lateCharges={0} // Assuming late charges are not applicable for users
-              challans={invoiceDetails.challans}
-              damages={invoiceDetails.damages}
-              userName={invoiceDetails.userName}
-              userPhone={invoiceDetails.userPhone}
-              vehicleNumber={invoiceDetails.vehicleNumber}
-              vehicleModel={invoiceDetails.vehicleModel}
-              packagePrice={invoiceDetails.packagePrice}
-              securityDeposit={invoiceDetails.securityDeposit}
-            />
           </div>
         </div>
       )}

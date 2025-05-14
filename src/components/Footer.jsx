@@ -25,7 +25,7 @@ const Footer = () => {
                   Home
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="/about" className="text-sm hover:text-gray-400">
                   About Us
                 </a>
@@ -34,7 +34,7 @@ const Footer = () => {
                 <a href="/services" className="text-sm hover:text-gray-400">
                   Services
                 </a>
-              </li>
+              </li> */}
               <li>
                 <a href="/contactus" className="text-sm hover:text-gray-400">
                   Contact
@@ -47,9 +47,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-3">Contact Info</h3>
             <ul className="space-y-2">
-              <li className="text-sm">📍 123 Street, City, Country</li>
-              <li className="text-sm">📞 +91 98765 43210</li>
-              <li className="text-sm">✉️ support@bikerental.com</li>
+              <li className="text-sm">📍 Bavdhan, Pune, India</li>
+              <li className="text-sm">📞 +91 1234567890</li>
+              <li className="text-sm">✉️ okbikes@gmail.com</li>
             </ul>
           </div>
 
