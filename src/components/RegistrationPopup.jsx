@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const RegistrationPopup = ({ onClose, openLogin }) => {
   const [mobile, setMobile] = useState("");
@@ -11,6 +12,12 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
   const [aadharBack, setAadharBack] = useState(null);
   const [dlFront, setDlFront] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const navigate = useNavigate();
+
+  // Add refs for input fields
+  const mobileInputRef = useRef(null);
+  const otpInputRef = useRef(null);
 
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
@@ -86,52 +93,105 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
 
       setOtpSent(true);
       showAlert("OTP sent successfully!");
+
+      // Focus on OTP input after a short delay to allow rendering
+      setTimeout(() => {
+        if (otpInputRef.current) {
+          otpInputRef.current.focus();
+        }
+      }, 100);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  // const verifyOTP = async () => {
+  //   if (!validateOTP(otp)) {
+  //     setError("Enter a valid 4-digit OTP.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setError("");
+
+  //   try {
+  //     const response = await fetch(`${import.meta.env.VITE_BASE_URL}/verify-registration-otp`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ phoneNumber: `+91${mobile}`, otp, userName }),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (!response.ok) {
+  //       throw new Error(data.message || "Invalid OTP.");
+  //     }
+
+  //     // Store JWT token in localStorage
+  //     localStorage.setItem("jwtToken", data.token);
+
+  //     // Show success animation
+  //     setShowSuccessAnimation(true);
+
+  //     // Fetch user details after successful registration
+  //     await fetchUserDetails(mobile);
+
+  //     setTimeout(() => {
+  //       onClose();
+  //       openLogin();
+  //     }, 2000);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
 
   const verifyOTP = async () => {
-    if (!validateOTP(otp)) {
-      setError("Enter a valid 4-digit OTP.");
-      return;
+  if (!validateOTP(otp)) {
+    setError("Enter a valid 4-digit OTP.");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BASE_URL}/verify-registration-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phoneNumber: `+91${mobile}`, otp, userName }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Invalid OTP.");
     }
 
-    setLoading(true);
-    setError("");
+    // Store JWT token in localStorage
+    localStorage.setItem("jwtToken", data.token);
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/verify-registration-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: `+91${mobile}`, otp, userName }),
-      });
+    // Show success animation
+    setShowSuccessAnimation(true);
 
-      const data = await response.json();
+    // Fetch user details after successful registration
+    await fetchUserDetails(mobile);
 
-      if (!response.ok) {
-        throw new Error(data.message || "Invalid OTP.");
-      }
-
-      // Store JWT token in localStorage
-      localStorage.setItem("jwtToken", data.token);
-      showAlert("Registration successful!");
-
-      // Fetch user details after successful registration
-      await fetchUserDetails(mobile);
-
-      setTimeout(() => {
-        onClose();
-        openLogin();
-      }, 1500);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Redirect to a protected route after a delay
+    setTimeout(() => {
+      navigate('/checkout'); 
+    }, 2000);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchUserDetails = async (phoneNumber) => {
     setLoading(true);
@@ -158,6 +218,34 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
     }
   };
 
+  // Handle key press events for both inputs
+  const handleKeyPress = (e, action) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      action();
+    }
+  };
+
+  // Success animation component
+  const SuccessAnimation = () => {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-90 z-50">
+        <div className="text-center">
+          <div className="success-checkmark">
+            <div className="check-icon">
+              <span className="icon-line line-tip"></span>
+              <span className="icon-line line-long"></span>
+              <div className="icon-circle"></div>
+              <div className="icon-fix"></div>
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-green-600 mt-4">Registration Successful!</h3>
+          <p className="text-gray-600 mt-2">Redirecting to login page...</p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
       <div className="bg-white p-6 rounded shadow-lg w-96 relative">
@@ -166,78 +254,255 @@ const RegistrationPopup = ({ onClose, openLogin }) => {
             {alertMessage}
           </div>
         )}
-        <h2 className="text-xl font-bold mb-4">Register</h2>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-        <input
-          type="text"
-          placeholder="Enter your name"
-          className="border p-2 w-full mb-2"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-        />
-
-        <input
-          type="tel"
-          placeholder="Enter 10-digit mobile number"
-          className="border p-2 w-full mb-2"
-          value={mobile}
-          onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-          maxLength={10}
-        />
-
-        <label>Aadhar Front/Back</label>
-        <input type="file" accept="image/*" className="border p-2 w-full mb-2" required onChange={(e) => handleFileChange(e, setAadharFront)} />
-        <input type="file" accept="image/*" className="border p-2 w-full mb-2" required onChange={(e) => handleFileChange(e, setAadharBack)} />
-
-        <label>Driving License Front</label>
-        <input type="file" accept="image/*" className="border p-2 w-full mb-2" onChange={(e) => handleFileChange(e, setDlFront)} />
-
-        {!otpSent ? (
-          <button
-            onClick={sendOTP}
-            disabled={loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles()}
-            className={`bg-blue-500 text-white px-4 py-2 w-full ${loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles() ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            {loading ? "Sending..." : "Send OTP"}
-          </button>
-        ) : (
+        {showSuccessAnimation ? <SuccessAnimation /> : (
           <>
+            <h2 className="text-xl font-bold mb-4">Register</h2>
+
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+            <input
+              type="text"
+              placeholder="Enter your name"
+              className="border p-2 w-full mb-2"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              autoFocus
+            />
+
             <input
               type="tel"
-              placeholder="Enter 4-digit OTP"
-              className="border p-2 w-full mt-2"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.slice(0, 4))}
+              placeholder="Enter 10-digit mobile number"
+              className="border p-2 w-full mb-2"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              maxLength={10}
+              ref={mobileInputRef}
+              onKeyPress={(e) => !otpSent && handleKeyPress(e, sendOTP)}
             />
-            <button
-              onClick={verifyOTP}
-              disabled={loading || !validateOTP(otp)}
-              className={`bg-green-500 text-white px-4 py-2 w-full mt-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
+
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Aadhar Front Side</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="border p-2 w-full"
+                onChange={(e) => handleFileChange(e, setAadharFront)}
+              />
+            </div>
+
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Aadhar Back Side</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="border p-2 w-full"
+                onChange={(e) => handleFileChange(e, setAadharBack)}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Driving License</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="border p-2 w-full"
+                onChange={(e) => handleFileChange(e, setDlFront)}
+              />
+            </div>
+
+            {!otpSent ? (
+              <button
+                onClick={sendOTP}
+                disabled={loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles()}
+                className={`bg-blue-500 text-white px-4 py-2 w-full ${loading || !validateMobile(mobile) || !validateName(userName) || !validateFiles() ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {loading ? "Sending..." : "Send OTP"}
+              </button>
+            ) : (
+              <>
+                <input
+                  type="tel"
+                  placeholder="Enter 4-digit OTP"
+                  className="border p-2 w-full mb-2"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.slice(0, 4))}
+                  ref={otpInputRef}
+                  onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
+                />
+                <p>Default OTP - 1234</p>
+                <button
+                  onClick={verifyOTP}
+                  disabled={loading || !validateOTP(otp)}
+                  className={`bg-green-500 text-white px-4 py-2 w-full ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {loading ? "Verifying..." : "Verify OTP"}
+                </button>
+              </>
+            )}
+
+            <p className="text-sm mt-4 text-center">
+              Already have an account? {" "}
+              <button
+                onClick={() => {
+                  onClose();
+                  openLogin();
+                }}
+                className="text-blue-500 underline"
+              >
+                Login here
+              </button>
+            </p>
+
+            <button onClick={onClose} className="mt-4 text-red-500">
+              Close
             </button>
           </>
         )}
-
-        <p className="text-sm mt-4 text-center">
-          Already have an account? {" "}
-          <button
-            onClick={() => {
-              onClose();
-              openLogin();
-            }}
-            className="text-blue-500 underline"
-          >
-            Login here
-          </button>
-        </p>
-
-        <button onClick={onClose} className="mt-4 text-red-500">
-          Close
-        </button>
       </div>
+      <style jsx>{`
+        .success-checkmark {
+          width: 80px;
+          height: 80px;
+          margin: 0 auto;
+        }
+        .check-icon {
+          width: 80px;
+          height: 80px;
+          position: relative;
+          border-radius: 50%;
+          box-sizing: content-box;
+          border: 4px solid #4CAF50;
+        }
+        .check-icon::before {
+          top: 3px;
+          left: -2px;
+          width: 30px;
+          transform-origin: 100% 50%;
+          border-radius: 100px 0 0 100px;
+        }
+        .check-icon::after {
+          top: 0;
+          left: 30px;
+          width: 60px;
+          transform-origin: 0 50%;
+          border-radius: 0 100px 100px 0;
+          animation: rotate-circle 4.25s ease-in;
+        }
+        .check-icon::before, .check-icon::after {
+          content: '';
+          height: 100px;
+          position: absolute;
+          background: #FFFFFF;
+          transform: rotate(-45deg);
+        }
+        .icon-line {
+          height: 5px;
+          background-color: #4CAF50;
+          display: block;
+          border-radius: 2px;
+          position: absolute;
+          z-index: 10;
+        }
+        .icon-line.line-tip {
+          top: 46px;
+          left: 14px;
+          width: 25px;
+          transform: rotate(45deg);
+          animation: icon-line-tip 0.75s;
+        }
+        .icon-line.line-long {
+          top: 38px;
+          right: 8px;
+          width: 47px;
+          transform: rotate(-45deg);
+          animation: icon-line-long 0.75s;
+        }
+        .icon-circle {
+          top: -4px;
+          left: -4px;
+          z-index: 10;
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          position: absolute;
+          box-sizing: content-box;
+          border: 4px solid rgba(76, 175, 80, .5);
+        }
+        .icon-fix {
+          top: 8px;
+          width: 5px;
+          left: 26px;
+          z-index: 1;
+          height: 85px;
+          position: absolute;
+          transform: rotate(-45deg);
+          background-color: #FFFFFF;
+        }
+        @keyframes rotate-circle {
+          0% {
+            transform: rotate(-45deg);
+          }
+          5% {
+            transform: rotate(-45deg);
+          }
+          12% {
+            transform: rotate(-405deg);
+          }
+          100% {
+            transform: rotate(-405deg);
+          }
+        }
+        @keyframes icon-line-tip {
+          0% {
+            width: 0;
+            left: 1px;
+            top: 19px;
+          }
+          54% {
+            width: 0;
+            left: 1px;
+            top: 19px;
+          }
+          70% {
+            width: 50px;
+            left: -8px;
+            top: 37px;
+          }
+          84% {
+            width: 17px;
+            left: 21px;
+            top: 48px;
+          }
+          100% {
+            width: 25px;
+            left: 14px;
+            top: 45px;
+          }
+        }
+        @keyframes icon-line-long {
+          0% {
+            width: 0;
+            right: 46px;
+            top: 54px;
+          }
+          65% {
+            width: 0;
+            right: 46px;
+            top: 54px;
+          }
+          84% {
+            width: 55px;
+            right: 0px;
+            top: 35px;
+          }
+          100% {
+            width: 47px;
+            right: 8px;
+            top: 38px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

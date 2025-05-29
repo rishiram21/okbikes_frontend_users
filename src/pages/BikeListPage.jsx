@@ -18,29 +18,32 @@ const BikeListPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuth();
+  const { checkToken } = useAuth();
 
-  // Define static locations as strings
-  const staticLocation1 = "OK Bikes Mangalwar Peth";
-  const staticLocation2 = "Ok Bikes Bavdhan";
-  const staticLocation3 = "OK Bikes Wakad";
+// For debugging:
+  const tokenStatus = checkToken();
+  console.log("Token status:", tokenStatus);
+  
+   // Log the token when the component mounts and whenever it changes
+  useEffect(() => {
+    console.log("Token from AuthContext:", token);
+    
+    // Setup authenticated API headers if token exists
+    if (token) {
+      console.log("Setting up authenticated API with token");
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, [token]);
+
+
+  // // Log the token when the component mounts
+  // useEffect(() => {
+  //   console.log("Token from AuthContext:", token);
+  // }, [token]);
+
+  
 
   const { formData } = location.state || {};
-
-  // Static bike details
-  const staticBikeDetails = {
-    id: 1,
-    model: "Ola Electric",
-    image: "/ola.jpg",
-    perDayRent: 399,
-    deposit: 0,
-    registrationYear: 2023,
-    storeName: staticLocation3,
-    categoryName: "Scooter",
-    categoryId: 1,
-    fuelType: "ELECTRIC",
-    brand: "Ola",
-    vehicleType: "Scooter",
-  };
 
   const [bikes, setBikes] = useState([]);
   const [filteredBikes, setFilteredBikes] = useState([]);
@@ -56,27 +59,6 @@ const BikeListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const filterRef = useRef(null);
   const bikesPerPage = 8;
-
-  // Handle page refresh on initial load
-  // useEffect(() => {
-  //   const reloadFlag = window.sessionStorage.getItem('pageHasReloaded');
-    
-  //   if (!reloadFlag) {
-  //     window.sessionStorage.setItem('pageHasReloaded', 'true');
-  //     const timestamp = new Date().getTime();
-  //     const refreshedUrl = window.location.pathname + 
-  //                         (window.location.search ? 
-  //                           window.location.search + '&_=' + timestamp : 
-  //                           '?_=' + timestamp);
-      
-  //     window.location.replace(refreshedUrl);
-  //   }
-  // }, []);
-
-  // Log the token when the component mounts
-  useEffect(() => {
-    console.log("Token from AuthContext:", token);
-  }, [token]);
 
   // Fetch bikes based on form data
   useEffect(() => {
@@ -127,14 +109,47 @@ const BikeListPage = () => {
         categoryName: bike.categoryName || "Unknown", // Default to "Unknown" if not set
       }));
 
-      combinedBikes.push(staticBikeDetails);
+      // Add the Ola scooter as a static entry
+      const olaScooter = {
+        id: 1,
+        model: "Ola Electric",
+        image: "/ola.jpg",
+        perDayRent: 399,
+        deposit: 0,
+        registrationYear: 2023,
+        storeName: "Wakad", // Use a dynamic location if needed
+        categoryName: "Scooter",
+        categoryId: 1,
+        fuelType: "ELECTRIC",
+        brand: "Ola",
+        vehicleType: "Scooter",
+      };
+
+      combinedBikes.push(olaScooter);
+
       console.log("Fetched Bikes:", combinedBikes);
       setBikes(combinedBikes);
       setFilteredBikes(combinedBikes);
     } catch (error) {
       console.error("Error fetching bikes:", error);
-      setBikes([staticBikeDetails]); // Fallback to static bike if fetch fails
-      setFilteredBikes([staticBikeDetails]);
+      // Fallback to the Ola scooter if fetch fails
+      const olaScooter = {
+        id: 1,
+        model: "Ola Electric",
+        image: "/ola.jpg",
+        perDayRent: 399,
+        deposit: 0,
+        registrationYear: 2023,
+        storeName: "Wakad", // Use a dynamic location if needed
+        categoryName: "Scooter",
+        categoryId: 1,
+        fuelType: "ELECTRIC",
+        brand: "Ola",
+        vehicleType: "Scooter",
+      };
+
+      setBikes([olaScooter]);
+      setFilteredBikes([olaScooter]);
     } finally {
       setLoading(false);
     }
@@ -245,7 +260,7 @@ const BikeListPage = () => {
   // Create filter checkbox component for reuse
   const FilterCheckbox = ({ label, value, filterType }) => {
     const isChecked = selectedFilters[filterType].includes(value);
-    
+
     return (
       <label className="flex items-center mb-2 text-sm cursor-pointer group">
         <div className={`w-5 h-5 mr-2 border rounded flex items-center justify-center transition-colors ${isChecked ? 'bg-orange-500 border-orange-500' : 'border-gray-300 group-hover:border-orange-300'}`}>
@@ -264,12 +279,12 @@ const BikeListPage = () => {
 
   // Function to display current filter status and results count
   const FilterStatus = () => {
-    const activeFiltersCount = 
-      selectedFilters.vehicleType.length + 
-      selectedFilters.brands.length + 
-      selectedFilters.fuelType.length + 
+    const activeFiltersCount =
+      selectedFilters.vehicleType.length +
+      selectedFilters.brands.length +
+      selectedFilters.fuelType.length +
       (selectedFilters.location ? 1 : 0);
-      
+
     return (
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 p-3 bg-gray-50 rounded-lg shadow-sm">
         <div>
@@ -279,7 +294,7 @@ const BikeListPage = () => {
           {activeFiltersCount > 0 && (
             <div className="text-sm text-gray-600 mt-1 flex items-center gap-2">
               <span>Filters applied: {activeFiltersCount}</span>
-              <button 
+              <button
                 onClick={resetFilters}
                 className="text-orange-500 hover:text-orange-700 flex items-center gap-1"
               >
@@ -327,7 +342,7 @@ const BikeListPage = () => {
           showFilters ? "block" : "hidden lg:block"
         } ${showFilters ? "fixed inset-0 z-40 overflow-y-auto lg:static lg:z-auto" : ""}`}
       >
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center">
           <h3 className="text-xl font-bold text-gray-900">Filters</h3>
           <button
             onClick={() => setShowFilters(false)}
@@ -384,9 +399,10 @@ const BikeListPage = () => {
             value={selectedFilters.location}
           >
             <option value="">All Locations</option>
-            <option value={staticLocation1}>{staticLocation1}</option>
-            <option value={staticLocation2}>{staticLocation2}</option>
-            <option value={staticLocation3}>{staticLocation3}</option>
+            {/* Dynamically populate locations from fetched data */}
+            {Array.from(new Set(bikes.map(bike => bike.storeName))).map((location, index) => (
+              <option key={index} value={location}>{location}</option>
+            ))}
           </select>
         </div>
 
@@ -431,73 +447,78 @@ const BikeListPage = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Content container */}
                   <div className="p-4 flex-grow flex flex-col">
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">
                       {bike.model}
                     </h3>
-                    
+
                     <div className="flex items-center text-xs text-gray-500 mb-3">
                       <span className="bg-gray-100 px-2 py-1 rounded-full">{bike.categoryName}</span>
                       {bike.registrationYear && (
                         <span className="ml-2">Year: {bike.registrationYear}</span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center text-sm mb-2">
                       <FaMapMarkerAlt className="text-orange-500 mr-1" />
                       <p className="text-gray-600 truncate">{bike.storeName}</p>
                     </div>
-                    
+
                     <div className="mt-auto pt-3 border-t">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <p className="text-xs text-gray-500">Price per day</p>
-                          <p className="text-xl font-bold text-orange-600">₹{bike.perDayRent}</p>
-                        </div>
-                        {bike.id === staticBikeDetails.id ? (
-                          <span className="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
-                            Coming Soon
-                          </span>
-                        ) : (
-                          <button
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-                            onClick={() =>
-                              navigate(`/bike-details`, {
-                                state: {
-                                  id: bike.id,
-                                  model: bike.model,
-                                  name: bike.name,
-                                  img: bike.image,
-                                  basePrice: bike.perDayRent,
-                                  deposit: bike.deposit,
-                                  registrationYear: bike.registrationYear,
-                                  storeName: bike.storeName,
-                                  categoryName: bike.categoryName,
-                                  categoryId: bike.categoryId,
-                                },
-                              })
-                            }
-                          >
-                            Rent Now
-                          </button>
-                        )}
-                      </div>
-                    </div>
+  <div className="flex justify-between items-end">
+    <div>
+      <p className="text-xs text-gray-500">Price per day</p>
+      <p className="text-xl font-bold text-orange-600">₹{bike.perDayRent}</p>
+    </div>
+    {bike.id === 1 && bike.model === "Ola Electric" ? (
+      <button
+        className="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed text-sm font-medium"
+        disabled
+      >
+        Coming Soon
+      </button>
+    ) : (
+      <button
+        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+        onClick={() =>
+          navigate(`/bike-details`, {
+            state: {
+              id: bike.id,
+              model: bike.model,
+              name: bike.name,
+              img: bike.image,
+              basePrice: bike.perDayRent,
+              deposit: bike.deposit,
+              registrationYear: bike.registrationYear,
+              storeName: bike.storeName,
+              categoryName: bike.categoryName,
+              categoryId: bike.categoryId,
+              storeId: bike.storeId,
+            },
+          })
+        }
+      >
+        Rent Now
+      </button>
+    )}
+  </div>
+</div>
+
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col justify-center items-center h-64 bg-gray-50 rounded-lg p-6">
-              <img 
-                src="/api/placeholder/120/120" 
-                alt="No bikes available" 
+              <img
+                src="/api/placeholder/120/120"
+                alt="No bikes available"
                 className="mb-4 opacity-50"
               />
               <p className="text-center text-gray-500 mb-2">No bikes available with the selected filters</p>
-              <button 
+              <button
                 onClick={resetFilters}
                 className="text-orange-500 hover:underline flex items-center gap-1"
               >
@@ -516,21 +537,21 @@ const BikeListPage = () => {
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
                 className={`flex items-center justify-center px-3 py-2 rounded-l-lg border ${
-                  currentPage === 1 
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed" 
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                     : "bg-white text-orange-600 border-gray-200 hover:bg-orange-50"
                 }`}
               >
                 <FaChevronLeft size={14} />
               </button>
-              
+
               {/* Show only a limited number of page buttons */}
               {[...Array(totalPages).keys()]
                 .filter(page => {
                   // Show first page, last page, current page, and pages around current
                   const pageNum = page + 1;
                   return (
-                    pageNum === 1 || 
+                    pageNum === 1 ||
                     pageNum === totalPages ||
                     Math.abs(pageNum - currentPage) <= 1 ||
                     (pageNum === 2 && currentPage === 1) ||
@@ -540,7 +561,7 @@ const BikeListPage = () => {
                 .map((page, index, array) => {
                   const pageNum = page + 1;
                   const showEllipsis = index > 0 && array[index - 1] !== page - 1;
-                  
+
                   return (
                     <React.Fragment key={pageNum}>
                       {showEllipsis && (
@@ -565,13 +586,13 @@ const BikeListPage = () => {
                     </React.Fragment>
                   );
                 })}
-              
+
               <button
                 onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className={`flex items-center justify-center px-3 py-2 rounded-r-lg border ${
-                  currentPage === totalPages 
-                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed" 
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                     : "bg-white text-orange-600 border-gray-200 hover:bg-orange-50"
                 }`}
               >

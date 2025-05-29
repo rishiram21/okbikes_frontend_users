@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaTimes,
   FaBicycle,
   FaHandshake,
   FaPhone,
@@ -11,16 +10,14 @@ import {
 } from "react-icons/fa";
 import { useGlobalState } from "../context/GlobalStateContext";
 import axios from "axios";
-import './HomePage.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { formData, setFormData } = useGlobalState();
-  const [popupOpen, setPopupOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedCityImage, setSelectedCityImage] = useState(
-    "/banner-freedom.jpg"
+    "/banner-freedom.jpg"  
   );
   const [cities, setCities] = useState([]);
   const [availableBikes, setAvailableBikes] = useState([]);
@@ -121,7 +118,7 @@ const HomePage = () => {
   // Optimize bike fetching with debounce and memory caching
   const fetchAvailableBikes = async (immediate = false) => {
     if (!formData.location || !formData.startDate || !formData.endDate) {
-      setErrors({ location: "Please select a location and dates." });
+      setErrors({ location: "Please Select City and dates." });
       return;
     }
 
@@ -297,13 +294,11 @@ const HomePage = () => {
 
         setTimeout(() => {
           fadeOut.classList.remove('fade-in');
-          setPopupOpen(false);
           setAnimationState(prev => ({...prev, citySelection: false}));
         }, 300);
       }, 300);
     } else {
       setSelectedCityImage(`data:image/jpeg;base64,${city.image}`);
-      setPopupOpen(false);
       setAnimationState(prev => ({...prev, citySelection: false}));
     }
   };
@@ -313,7 +308,7 @@ const HomePage = () => {
     setAnimationState(prev => ({...prev, searchBtn: true}));
 
     if (!formData.location) {
-      setErrors({ location: "Please select a location." });
+      setErrors({ location: "Please Select City." });
       setAnimationState(prev => ({...prev, searchBtn: false}));
       return;
     }
@@ -322,10 +317,7 @@ const HomePage = () => {
       // Navigate immediately if bikes are already loaded
       if (availableBikes.length > 0) {
         navigate("/bike-list", { state: { formData } });
-
-        // Add a small delay before reloading to ensure navigation happens
         setTimeout(() => {
-          window.location.reload();
         }, 100);
 
         return;
@@ -336,10 +328,7 @@ const HomePage = () => {
 
       if (bikes.length > 0) {
         navigate("/bike-list", { state: { formData } });
-
-        // Add a small delay before reloading to ensure navigation happens
         setTimeout(() => {
-          window.location.reload();
         }, 100);
       } else if (lastFetchError) {
         setErrors({ location: lastFetchError });
@@ -350,8 +339,6 @@ const HomePage = () => {
     } catch (error) {
       console.error("Navigation error:", error);
       setAnimationState(prev => ({...prev, searchBtn: false}));
-      // Force reload the page in case of navigation error
-      window.location.reload();
     }
   };
 
@@ -362,51 +349,67 @@ const HomePage = () => {
     : [];
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section - Responsive for all screen sizes */}
-      <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen">
-        {/* Image Section - Full width on mobile, half width on desktop */}
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
+      {/* Hero Section - Ultra Responsive for all devices */}
+      <div className="flex flex-col xl:flex-row h-screen">
+        {/* Image Section - 40% height on mobile, 50% width on desktop */}
         <div
-          className="w-full lg:w-1/2 h-64 lg:h-full bg-cover bg-center main-banner city-image-container"
+          className="w-full xl:w-1/2 h-2/5 xl:h-full bg-cover bg-center main-banner city-image-container relative"
           style={{
             backgroundImage: `url('${selectedCityImage}')`,
             transition: 'opacity 0.3s ease-in-out',
+            backgroundPosition: window.innerWidth < 768 ? 'center 30%' : 'center center',
           }}
-        ></div>
+        >
+          {/* Overlay for better text readability on mobile */}
+          <div className="absolute inset-0 bg-black bg-opacity-20 xl:hidden"></div>
+        </div>
 
-        {/* Form Section - Full width on mobile, half width on desktop */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-4 lg:p-8 bg-gradient-to-r from-orange-900 to-orange-600 slide-in-right">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 lg:mb-6 animate-pulse-once text-center">
-            Welcome to OKBikes
+        {/* Form Section - 60% height on mobile, no spacing */}
+        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-500 to-orange-500 slide-in-right">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white mb-4 xl:mb-6 animate-pulse-once text-center leading-tight">
+            Welcome to OkBikes
           </h1>
-          <div className="bg-white p-4 lg:p-8 shadow-lg w-full max-w-md booking-form rounded-lg">
-            <div className="mb-4">
+          
+          <div className="bg-white p-4 xl:p-8 shadow-lg w-full max-w-sm xl:max-w-md booking-form rounded-lg">
+            {/* Location Field */}
+            <div className="mb-3 xl:mb-4">
               <label
-                className="block text-orange-800 font-medium mb-2"
+                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
                 htmlFor="location"
               >
-                Location
+                Select City
               </label>
-              <input
-                type="text"
+              <select
                 id="location"
                 name="location"
-                placeholder="Select a location"
-                value={formData.location || ""} // Display empty string if location is null
-                readOnly
-                onClick={() => setPopupOpen(true)}
-                className={`w-full px-4 py-2 border outline-none focus:ring-2 focus:ring-orange-900 hover:shadow-md transition-all duration-300 rounded-md ${
+                value={formData.location || ""}
+                onChange={(e) => {
+                  const selectedCity = cities.find(city => city.name === e.target.value);
+                  if (selectedCity) {
+                    handleCitySelection(selectedCity);
+                  }
+                }}
+                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-900 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
                   errors.location ? "border-red-500" : "border-gray-300"
                 }`}
-              />
+              >
+                <option value="">Select City</option>
+                {cities.map((city, index) => (
+                  <option key={index} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
               {errors.location && (
-                <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.location}</p>
               )}
             </div>
 
-            <div className="mb-4">
+            {/* Start Date Field */}
+            <div className="mb-3 xl:mb-4">
               <label
-                className="block text-orange-800 font-medium mb-2"
+                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
                 htmlFor="startDate"
               >
                 Start Date & Time
@@ -418,17 +421,19 @@ const HomePage = () => {
                 value={formData.startDate}
                 min={formatDateForInput(new Date())}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md ${
+                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
                   errors.startDate ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.startDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>
+                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.startDate}</p>
               )}
             </div>
-            <div className="mb-6">
+
+            {/* End Date Field */}
+            <div className="mb-4 xl:mb-6">
               <label
-                className="block text-orange-800 font-medium mb-2"
+                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
                 htmlFor="endDate"
               >
                 End Date & Time
@@ -440,18 +445,20 @@ const HomePage = () => {
                 value={formData.endDate}
                 min={formData.startDate}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md ${
+                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
                   errors.endDate ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.endDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>
+                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.endDate}</p>
               )}
             </div>
+
+            {/* Submit Button */}
             <button
               onClick={handleSearch}
               disabled={isLoading || animationState.searchBtn}
-              className={`w-full bg-orange-800 text-white rounded-full py-2 px-4 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+              className={`w-full bg-orange-800 text-white rounded-full py-3 xl:py-2 px-4 xl:px-4 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 active:scale-95 text-base xl:text-base font-medium ${
                 animationState.searchBtn ? 'animate-pulse' : ''
               }`}
             >
@@ -461,107 +468,64 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* City Selection Popup - Responsive for all screens */}
-      {popupOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 animate-fade-in p-4">
-          <div className="bg-white w-full max-w-4xl p-4 lg:p-6 relative animate-scale-up rounded-lg max-h-[90vh] overflow-hidden flex flex-col">
-            <button
-              onClick={() => setPopupOpen(false)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <FaTimes className="text-xl transform hover:rotate-90 transition-transform duration-300" />
-            </button>
-            <h2 className="text-lg font-semibold mb-4">Select a City</h2>
-            <input
-              type="text"
-              placeholder="Search or type city to select"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 mb-4 border focus:ring-2 focus:ring-orange-500 outline-none transition-all duration-300 rounded-md"
-              autoFocus
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 overflow-y-auto flex-grow">
-              {filteredCities.map((city, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center cursor-pointer hover:bg-orange-50 p-3 rounded-lg transition-all duration-300 transform hover:scale-105 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  onClick={() => handleCitySelection(city)}
-                >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-full border-2 border-orange-300 transition-transform duration-300 hover:border-orange-500">
-                    <img
-                      src={`data:image/jpeg;base64,${city.image}`}
-                      alt={city.name}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                    />
-                  </div>
-                  <span className="text-sm font-medium mt-2 text-center">{city.name}</span>
-                  <span className="text-xs text-gray-500">{city.state}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Why Choose OKBikes Section - Responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-10 lg:py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-6 lg:mb-8 animate-bounce-once">
-            Why Choose OKBikes
+      {/* Why Choose OkBikes Section - Ultra responsive grid */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-bounce-once">
+            Why Choose OkBikes
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {[
               {
-                icon: <FaBicycle className="text-orange-600 text-3xl lg:text-4xl mb-3 lg:mb-4" />,
+                icon: <FaBicycle className="text-orange-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
                 text: "Wide range of bikes.",
               },
               {
-                icon: <FaHandshake className="text-orange-500 text-3xl lg:text-4xl mb-3 lg:mb-4" />,
+                icon: <FaHandshake className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
                 text: "Affordable pricing.",
               },
               {
-                icon: <FaPhone className="text-orange-500 text-3xl lg:text-4xl mb-3 lg:mb-4" />,
+                icon: <FaPhone className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
                 text: "24/7 customer support.",
               },
               {
-                icon: <FaCheck className="text-orange-500 text-3xl lg:text-4xl mb-3 lg:mb-4" />,
+                icon: <FaCheck className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
                 text: "Easy booking process.",
               },
               {
                 icon: (
-                  <FaMapMarkerAlt className="text-orange-500 text-3xl lg:text-4xl mb-3 lg:mb-4" />
+                  <FaMapMarkerAlt className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />
                 ),
                 text: "Multiple locations.",
               },
               {
                 icon: (
-                  <FaCreditCard className="text-orange-500 text-3xl lg:text-4xl mb-3 lg:mb-4" />
+                  <FaCreditCard className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />
                 ),
                 text: "Secure payment.",
               },
             ].map((reason, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center bg-white p-4 lg:p-6 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 feature-item rounded-lg"
+                className="flex flex-col items-center text-center bg-white p-4 sm:p-5 md:p-6 lg:p-8 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 feature-item rounded-lg"
               >
                 <div className="transform transition-transform duration-500 hover:rotate-12 hover:scale-110">
                   {reason.icon}
                 </div>
-                <p className="text-gray-800 font-medium">{reason.text}</p>
+                <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl">{reason.text}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* How to Book a Bike Section - Responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-10 lg:py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-6 lg:mb-8 animate-pulse-once">
+      {/* How to Book a Bike Section - Ultra responsive grid */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-pulse-once">
             How to Book a Bike
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {[
               {
                 step: "Step 1",
@@ -602,16 +566,16 @@ const HomePage = () => {
             ].map((step, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center bg-gray-50 p-4 lg:p-6 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:scale-105 animate-slide-in-from-bottom rounded-lg"
+                className="flex flex-col items-center text-center bg-gray-50 p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:scale-105 animate-slide-in-from-bottom rounded-lg"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="text-orange-500 text-xl lg:text-2xl font-semibold mb-1 lg:mb-2">
+                <div className="text-orange-500 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold mb-2">
                   {step.step}
                 </div>
-                <h3 className="text-lg lg:text-xl font-bold text-gray-800 mb-1 lg:mb-2">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-800 mb-2">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 text-sm lg:text-base">{step.description}</p>
+                <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>

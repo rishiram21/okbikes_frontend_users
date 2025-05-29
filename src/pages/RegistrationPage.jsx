@@ -358,9 +358,10 @@ const RegistrationPage = () => {
               type="tel"
               placeholder="Enter 10-digit mobile number"
               className="border p-2 w-full mb-2"
+              maxLength={10}
               value={mobile}
               onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              maxLength={10}
+              
               ref={mobileInputRef}
               onKeyPress={(e) => !otpSent && handleKeyPress(e, sendOTP)}
             />
@@ -416,6 +417,7 @@ const RegistrationPage = () => {
                   ref={otpInputRef}
                   onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
                 />
+                <p>Default OTP - 1234</p>
                 <button
                   onClick={verifyOTP}
                   disabled={loading || otp.length !== 4}

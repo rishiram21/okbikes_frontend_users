@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
 const LoginPopup = ({ onClose, openRegistration }) => {
   const [mobile, setMobile] = useState("");
@@ -21,41 +24,68 @@ const LoginPopup = ({ onClose, openRegistration }) => {
     setTimeout(() => setAlertMessage(null), 3000);
   };
 
+
+  const { token } = useAuth();
+  const { checkToken } = useAuth();
+
+// For debugging:
+  const tokenStatus = checkToken();
+  console.log("Token status:", tokenStatus);
+  
+   // Log the token when the component mounts and whenever it changes
+  useEffect(() => {
+    console.log("Token from AuthContext:", token);
+    
+    // Setup authenticated API headers if token exists
+    if (token) {
+      console.log("Setting up authenticated API with token");
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, [token]);
+
+
   const sendOTP = async () => {
-    if (mobile.length !== 10) {
-      setError("Enter a valid 10-digit mobile number.");
-      return;
-    }
+  if (mobile.length !== 10) {
+    setError("Enter a valid 10-digit mobile number.");
+    return;
+  }
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
-      });
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to send OTP.");
+    if (!response.ok) {
+      const data = await response.json();
+      if (data.message === "User not found" || data.message === "Invalid mobile number") {
+        // Redirect to registration if the user is not found or the number is invalid
+        onClose();
+        openRegistration();
       }
-
-      setOtpSent(true);
-      showAlert("OTP sent successfully!");
-
-      // Focus on OTP input after a short delay to allow rendering
-      setTimeout(() => {
-        if (otpInputRef.current) {
-          otpInputRef.current.focus();
-        }
-      }, 100);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      throw new Error(data.message || "Failed to send OTP.");
     }
-  };
+
+    setOtpSent(true);
+    showAlert("OTP sent successfully!");
+
+    // Focus on OTP input after a short delay to allow rendering
+    setTimeout(() => {
+      if (otpInputRef.current) {
+        otpInputRef.current.focus();
+      }
+    }, 100);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const verifyOTP = async () => {
     if (otp.length !== 4) {
@@ -87,7 +117,7 @@ const LoginPopup = ({ onClose, openRegistration }) => {
 
       setTimeout(() => {
         onClose();
-        navigate("/checkout"); // Redirect to checkout or dashboard
+        navigate("/checkout"); 
       }, 2000);
     } catch (err) {
       setError(err.message);
@@ -95,6 +125,7 @@ const LoginPopup = ({ onClose, openRegistration }) => {
       setLoading(false);
     }
   };
+
 
   // Handle key press events for both inputs
   const handleKeyPress = (e, action) => {
@@ -324,6 +355,7 @@ const LoginPopup = ({ onClose, openRegistration }) => {
                   ref={otpInputRef}
                   onKeyPress={(e) => handleKeyPress(e, verifyOTP)}
                 />
+                <p>Default OTP - 1234</p>
                 <button
                   onClick={verifyOTP}
                   disabled={loading || otp.length !== 4}

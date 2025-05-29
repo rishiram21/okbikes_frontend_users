@@ -2,7 +2,7 @@ import React from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [], userName, userPhone, vehicleNumber, vehicleModel, packagePrice, securityDeposit, onClose }) => {
+const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damages = [], userName, userPhone, vehicleNumber, vehicleModel, packagePrice, securityDeposit, onClose }) => {
   const calculateDuration = () => {
     if (!booking?.startDate || !booking?.endDate) return '';
     const start = new Date(booking.startDate);
@@ -26,13 +26,24 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
     year: 'numeric'
   });
 
-  // Calculate subtotal and total
-  const gst = packagePrice * 0.18;
+  // Enhanced calculation logic from first code
+  const durationInDays = () => {
+    const durationStr = calculateDuration();
+    const daysMatch = durationStr.match(/(\d+)\s+day/);
+    return daysMatch ? parseInt(daysMatch[1]) : 1; // Default to 1 day if no days found
+  };
+
+  const totalPackagePrice = packagePrice * durationInDays();
+  
+  // Check if delivery charge should be added
+  const deliveryCharge = booking?.addressType === 'DELIVERY_AT_LOCATION' ? 250 : 0;
+  
+  const gst = totalPackagePrice * 0.18;
   const convenienceFee = 2.00;
-  const subtotal = packagePrice + gst + convenienceFee;
-  const additionalChargesTotal = charges.reduce((sum, charge) => sum + Number(charge.amount), 0);
-  const challansTotal = challans.reduce((sum, challan) => sum + Number(challan.amount), 0);
-  const damagesTotal = damages.reduce((sum, damage) => sum + Number(damage.amount), 0);
+  const subtotal = totalPackagePrice + gst + convenienceFee + deliveryCharge;
+  const additionalChargesTotal = charges.reduce((sum, charge) => sum + Number(charge.amount || 0), 0);
+  const challansTotal = challans.reduce((sum, challan) => sum + Number(challan.amount || 0), 0);
+  const damagesTotal = damages.reduce((sum, damage) => sum + Number(damage.amount || 0), 0);
   const totalAmount = subtotal + additionalChargesTotal + lateCharges + challansTotal + damagesTotal;
 
   // Function to handle invoice download as PDF
@@ -40,7 +51,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
     const invoiceElement = document.getElementById('invoice-container');
     const invoiceId = `OkBikes_Invoice_${booking?.bookingId || 'Invoice'}`;
     
-    // Create a temporary invisible button
+    // Create a temporary status element
     const downloadStatusElement = document.createElement('div');
     downloadStatusElement.style.position = 'fixed';
     downloadStatusElement.style.top = '10px';
@@ -58,10 +69,10 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
     // Hide the close button and download/print buttons during capture
     const closeButton = document.getElementById('close-button');
     const actionButtons = document.getElementById('action-buttons');
-    const originalCloseDisplay = closeButton.style.display;
-    const originalActionDisplay = actionButtons.style.display;
-    closeButton.style.display = 'none';
-    actionButtons.style.display = 'none';
+    const originalCloseDisplay = closeButton?.style.display;
+    const originalActionDisplay = actionButtons?.style.display;
+    if (closeButton) closeButton.style.display = 'none';
+    if (actionButtons) actionButtons.style.display = 'none';
 
     // Use html2canvas to capture the invoice
     html2canvas(invoiceElement, {
@@ -71,8 +82,8 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
       allowTaint: true
     }).then(canvas => {
       // Restore the buttons
-      closeButton.style.display = originalCloseDisplay;
-      actionButtons.style.display = originalActionDisplay;
+      if (closeButton) closeButton.style.display = originalCloseDisplay || '';
+      if (actionButtons) actionButtons.style.display = originalActionDisplay || '';
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -91,18 +102,30 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
       // Update status and remove after a delay
       downloadStatusElement.textContent = 'PDF Downloaded Successfully!';
       setTimeout(() => {
-        document.body.removeChild(downloadStatusElement);
+        if (document.body.contains(downloadStatusElement)) {
+          document.body.removeChild(downloadStatusElement);
+        }
       }, 2000);
+    }).catch(error => {
+      console.error('Error generating PDF:', error);
+      downloadStatusElement.textContent = 'Error generating PDF';
+      downloadStatusElement.style.background = '#f44336';
+      setTimeout(() => {
+        if (document.body.contains(downloadStatusElement)) {
+          document.body.removeChild(downloadStatusElement);
+        }
+      }, 3000);
     });
   };
 
   return (
     <div className="bg-white min-h-screen w-full print:min-h-0 print:w-auto relative">
-      {/* Close Button */}
+      {/* Close Button - Positioned outside the header area */}
       <button 
         id="close-button"
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 text-white bg-blue-700 hover:bg-blue-800 rounded-full p-2 shadow-lg print:hidden"
+        className="fixed top-6 right-6 z-50 text-white bg-gray-700 hover:bg-gray-800 rounded-full p-3 shadow-lg print:hidden transition-colors duration-200"
+        style={{ zIndex: 9999 }}
         aria-label="Close invoice"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -111,25 +134,33 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
       </button>
 
       {/* Invoice Container */}
-      <div id="invoice-container">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-8 rounded-t-lg flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">OkBikes</h1>
-              <p className="text-blue-100">Ride with confidence</p>
+      <div id="invoice-container" className="relative">
+        {/* Header - Improved layout with proper spacing */}
+        <div className="bg-gradient-to-r from-orange-900 to-orange-800 text-white p-8 rounded-t-lg">
+          <div className="flex justify-between items-start">
+            {/* Left side - Logo and Company */}
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="flex items-center space-x-3">
+                <img src="/okbikes.jpg" alt="OkBikes Logo" className="h-12 w-12" />
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">OkBikes</h1>
+                  <p className="text-orange-100">Ride with confidence</p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <h2 className="text-2xl font-bold tracking-wide uppercase">Invoice</h2>
-            <div className="bg-blue-700 px-3 py-1 rounded mt-1 inline-block">
-              <p className="text-blue-100">OKB-{booking?.bookingId}</p>
+            
+            {/* Right side - Invoice details with proper margin */}
+            <div className="text-right flex-shrink-0 mr-16">
+              <h2 className="text-2xl font-bold tracking-wide uppercase mb-2">Invoice</h2>
+              <div className="bg-orange-700 px-4 py-2 rounded inline-block">
+                <p className="text-orange-100 font-medium">OKB-{booking?.bookingId}</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Status Bar */}
-        <div className="bg-blue-50 px-8 py-3 border-b border-blue-100 flex justify-between items-center">
+        <div className="bg-orange-50 px-8 py-3 border-b border-orange-100 flex justify-between items-center">
           <div className="text-gray-600">
             <span>Invoice Date: </span>
             <span className="font-medium">{today}</span>
@@ -139,22 +170,22 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
         {/* Body */}
         <div className="p-8">
           {/* Address and Date Section */}
-          <div className="flex justify-between mb-8">
-            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-800 w-5/12">
+          <div className="flex justify-between mb-8 gap-6">
+            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
               <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Billed To:</h3>
               <p className="text-gray-800 font-medium text-lg">{userName}</p>
               <p className="text-gray-600">{userPhone}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-800 w-5/12">
+            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
               <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Payment Details:</h3>
-              <p className="text-gray-600">Payment Mode: <span className="font-medium">{booking?.paymentMode || "Cash On Center"}</span></p>
+              <p className="text-gray-600">Payment Mode: <span className="font-medium">{booking?.paymentMethod || "Cash On Center"}</span></p>
               <p className="text-gray-600">Security Deposit: <span className="font-medium">₹{securityDeposit}</span></p>
             </div>
           </div>
 
           {/* Booking Details */}
           <div className="mb-8">
-            <h3 className="text-xl font-semibold text-blue-900 pb-2 mb-4 flex items-center">
+            <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
@@ -172,7 +203,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">Start Date & Time</p>
-                  <p className="font-medium text-gray-900">{new Date(booking.startDate).toLocaleString('en-US', {
+                  <p className="font-medium text-gray-900">{new Date(booking?.startDate).toLocaleString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -183,7 +214,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">End Date & Time</p>
-                  <p className="font-medium text-gray-900">{new Date(booking.endDate).toLocaleString('en-US', {
+                  <p className="font-medium text-gray-900">{new Date(booking?.endDate).toLocaleString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -206,7 +237,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
 
           {/* Charges Breakdown */}
           <div className="mb-8">
-            <h3 className="text-xl font-semibold text-blue-900 pb-2 mb-4 flex items-center">
+            <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -222,8 +253,8 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="py-3 px-4 text-gray-700">Package Price</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">₹{packagePrice.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-gray-700">Package Price ({durationInDays()} day{durationInDays() !== 1 ? 's' : ''})</td>
+                    <td className="py-3 px-4 text-gray-700 text-right">₹{totalPackagePrice.toFixed(2)}</td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-gray-700">GST (18%)</td>
@@ -233,10 +264,16 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
                     <td className="py-3 px-4 text-gray-700">Convenience Fee</td>
                     <td className="py-3 px-4 text-gray-700 text-right">₹{convenienceFee.toFixed(2)}</td>
                   </tr>
-                  {charges.map((charge, index) => (
+                  {booking?.addressType === 'DELIVERY_AT_LOCATION' && (
+                    <tr className="bg-orange-50">
+                      <td className="py-3 px-4 text-orange-700 font-medium">Delivery Charge</td>
+                      <td className="py-3 px-4 text-orange-700 font-medium text-right">₹{deliveryCharge.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  {/* {charges.map((charge, index) => (
                     <tr key={index}>
-                      <td className="py-3 px-4 text-gray-700">{charge.type}</td>
-                      <td className="py-3 px-4 text-gray-700 text-right">₹{charge.amount.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-gray-700">{charge.type || charge.description}</td>
+                      <td className="py-3 px-4 text-gray-700 text-right">₹{Number(charge.amount || 0).toFixed(2)}</td>
                     </tr>
                   ))}
                   {lateCharges > 0 && (
@@ -248,25 +285,26 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
                   {challans.map((challan, index) => (
                     <tr key={index} className="bg-orange-50">
                       <td className="py-3 px-4 text-orange-700">Traffic Challan: {challan.description}</td>
-                      <td className="py-3 px-4 text-orange-700 text-right">₹{challan.amount.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-orange-700 text-right">₹{Number(challan.amount || 0).toFixed(2)}</td>
                     </tr>
                   ))}
                   {damages.map((damage, index) => (
                     <tr key={index} className="bg-red-50">
                       <td className="py-3 px-4 text-red-700">Damage: {damage.description}</td>
-                      <td className="py-3 px-4 text-red-700 text-right">₹{damage.amount.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-red-700 text-right">₹{Number(damage.amount || 0).toFixed(2)}</td>
                     </tr>
-                  ))}
+                  ))} */}
                 </tbody>
-                <tfoot className="bg-blue-50">
-                  <tr className="border-t-2 border-blue-200">
-                    <td className="py-4 px-4 text-lg font-bold text-blue-900">Total Amount</td>
-                    <td className="py-4 px-4 text-2xl font-bold text-blue-900 text-right">₹{totalAmount.toFixed(2)}</td>
+                <tfoot className="bg-orange-50">
+                  <tr className="border-t-2 border-orange-200">
+                    <td className="py-4 px-4 text-lg font-bold text-orange-900">Total Amount</td>
+                    <td className="py-4 px-4 text-2xl font-bold text-orange-900 text-right">₹{totalAmount.toFixed(2)}</td>
                   </tr>
                 </tfoot>
-                
               </table>
-              <td className='font-semibold text-red-600'>* Note Deposit is not included in Total Amount</td>
+              <div className="px-4 py-2 bg-gray-50">
+                <p className="font-semibold text-red-600 text-sm">* Note: Deposit is not included in Total Amount</p>
+              </div>
             </div>
           </div>
 
@@ -284,6 +322,9 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
               <li>Fuel charges are not included in the package price.</li>
               <li>The renter is responsible for any traffic violations during the rental period.</li>
               <li>Damages to the vehicle will be charged as per assessment.</li>
+              {booking?.addressType === 'DELIVERY_AT_LOCATION' && (
+                <li>Delivery charge of ₹250 applies for location-based delivery service.</li>
+              )}
             </ul>
           </div>
 
@@ -293,13 +334,13 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
             <div className="flex justify-center items-center mt-2 space-x-4">
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2h10a2 2 0 002 2z" />
                 </svg>
                 <span>support@okbikes.com</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493-1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
                 <span>+91 1234567890</span>
               </div>
@@ -308,7 +349,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
         </div>
       </div>
 
-      {/* Print Button (Bottom) */}
+      {/* Action Buttons (Bottom) */}
       <div id="action-buttons" className="bg-gray-50 px-8 py-4 rounded-b-lg border-t border-gray-200 print:hidden">
         <div className="flex justify-between">
           <div className="flex space-x-2">
@@ -323,7 +364,7 @@ const Invoice = ({ booking, charges, lateCharges = 0, challans = [], damages = [
             </button>
           </div>
           <button
-            className="px-6 py-2.5 bg-blue-800 text-white rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center shadow-md"
+            className="px-6 py-2.5 bg-orange-800 text-white rounded-md hover:bg-orange-700 transition duration-300 flex items-center justify-center shadow-md"
             onClick={() => window.print()}
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

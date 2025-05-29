@@ -1,25 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGlobalState } from "../context/GlobalStateContext";
-import { FaRegCalendarAlt, FaMapMarkerAlt, FaClipboardCheck, FaExclamationTriangle, FaSyncAlt } from "react-icons/fa";
+import { FaRegCalendarAlt, FaMapMarkerAlt, FaClipboardCheck, FaExclamationTriangle } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import numberToWords from 'number-to-words';
-import { useAuth } from "../context/AuthContext"; // Import useAuth for token management
-
-const convertToWords = (amount) => {
-  const rupees = Math.floor(amount);
-  const paise = Math.round((amount - rupees) * 100);
-  const rupeesInWords = numberToWords.toWords(rupees);
-  const paiseInWords = numberToWords.toWords(paise);
-  return `${rupeesInWords} rupees and ${paiseInWords} paise`;
-};
+import { useAuth } from "../context/AuthContext";
+import AsyncRazorpayButton from "../components/AsyncRazorpayButton";
 
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { addOrder, user } = useGlobalState();
-  const { token } = useAuth(); // Use the token from AuthContext
+  const { addOrder } = useGlobalState();
+  const { token, tokenLoaded } = useAuth();
 
   const [checkoutData, setCheckoutData] = useState(location.state || {});
   const [loadingData, setLoadingData] = useState(true);
@@ -37,24 +29,44 @@ const CheckoutPage = () => {
   const [showTermsError, setShowTermsError] = useState(false);
   const [documentMessage, setDocumentMessage] = useState("");
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingData, setBookingData] = useState(null);
 
-  // useEffect(() => {
-  //   // Check if the URL already has our reload parameter
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const hasReloaded = urlParams.get('reloaded');
+  // console.log("CheckoutPage - storeId:", checkoutData.storeId);
 
-  //   if (!hasReloaded) {
-  //     // Add the parameter and reload
-  //     const newUrl = window.location.pathname + '?reloaded=true' +
-  //                    (window.location.hash || '');
-  //     window.location.href = newUrl;
-  //   }
-  // }, []);
-
-  // Log the token when the component mounts
   useEffect(() => {
-    console.log("Token from AuthContext:", token);
-  }, [token]);
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("jwtToken");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/profile`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user profile");
+        }
+
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setBookingError("Failed to load user profile. Please try again.");
+        // Don't navigate away immediately, give user a chance to retry
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchCoupons = async () => {
@@ -63,6 +75,8 @@ const CheckoutPage = () => {
         setCoupons(response.data);
       } catch (error) {
         console.error("Failed to fetch coupons:", error);
+        // Set a user-friendly error message but don't block the checkout
+        setCouponError("Failed to load available coupons. You can still proceed without a coupon.");
       } finally {
         setCouponLoading(false);
       }
@@ -87,20 +101,16 @@ const CheckoutPage = () => {
     fetchCoupons();
     loadCheckoutData();
     setLoadingData(false);
+
+    const intervalId = setInterval(() => {
+      const sessionData = sessionStorage.getItem("checkoutData");
+      if (sessionData) {
+        setCheckoutData(JSON.parse(sessionData));
+      }
+    }, 1000); // Added missing interval time
+
+    return () => clearInterval(intervalId);
   }, [location.state]);
-
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-
-  const handleCheckboxChange = () => {
-    // Store the current state in sessionStorage
-    sessionStorage.setItem("termsAccepted", !termsAccepted);
-    sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
-
-    // Reload the page
-    window.location.reload();
-  };
 
   const {
     bike = {},
@@ -110,32 +120,29 @@ const CheckoutPage = () => {
     pickupOption = "SELF_PICKUP",
     pickupDate = new Date(),
     dropDate = new Date(),
-    storeName = ""
+    storeName = "",
+    totalPrice = 0
   } = checkoutData;
 
   const depositAmount = bike?.deposit || 0;
   const deliveryCharge = pickupOption === "DELIVERY_AT_LOCATION" ? 250 : 0;
-
-  // Calculate base price with extra days
-  const packagePrice = selectedPackage?.price || 0;
-  const extraDays = Math.max(rentalDays - (selectedPackage?.days || 0), 0);
-  const extraDaysPrice = extraDays * (checkoutData.oneDayPackage?.price || 0);
-  const basePrice = packagePrice + extraDaysPrice;
-
-  // Calculate GST on (basePrice + deliveryCharge)
-  const taxableAmount = basePrice + deliveryCharge;
+  const convenienceFee = 2;
+  const basePrice = totalPrice;
+  const taxableAmount = basePrice;
   const gstAmount = taxableAmount * 0.18;
+  // const totalAmountBeforeDiscount = basePrice + deliveryCharge + gstAmount + depositAmount;
+  // const payableAmount = Math.max(0, totalAmountBeforeDiscount - discount);
+  const totalAmountBeforeDiscount = basePrice + deliveryCharge + gstAmount + depositAmount + convenienceFee;
+  const payableAmount = Math.max(0, totalAmountBeforeDiscount - discount);
 
-  // Calculate total amount before discount
-  const totalAmountBeforeDiscount = basePrice + deliveryCharge + gstAmount + depositAmount;
-
-  // Handle dropdown selection
   const handleDropdownChange = (e) => {
     const selectedValue = e.target.value;
     setSelectedCouponFromDropdown(selectedValue);
     if (selectedValue) {
       setCouponCode(selectedValue);
     }
+    // Clear previous errors when user makes a new selection
+    setCouponError("");
   };
 
   const handleApplyCoupon = async () => {
@@ -147,13 +154,19 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (!userData?.id) {
+      setCouponError("User data not loaded. Please refresh the page and try again.");
+      return;
+    }
+
     const payload = {
       couponCode: codeToApply,
       originalPrice: basePrice,
-      user: user.id,
+      user: userData.id,
     };
 
     try {
+      setCouponError(""); // Clear previous errors
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/coupons/apply`, payload);
 
       if (response.status === 200) {
@@ -168,20 +181,23 @@ const CheckoutPage = () => {
             calculatedDiscount = appliedCouponData.discountValue;
           }
 
-          // Ensure discount doesn't exceed total amount
           calculatedDiscount = Math.min(calculatedDiscount, basePrice + deliveryCharge);
 
           setAppliedCoupon(appliedCouponData);
           setDiscount(calculatedDiscount);
           setCouponError("");
         } else {
-          setCouponError("Invalid coupon data.");
+          setCouponError("Coupon applied but details not found. Please contact support.");
         }
       } else {
         setCouponError("Failed to apply coupon. Please try again.");
       }
     } catch (error) {
-      setCouponError(error.response?.data || "Error applying coupon.");
+      console.error("Error applying coupon:", error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data || 
+                          "Error applying coupon. Please check the code and try again.";
+      setCouponError(errorMessage);
     }
   };
 
@@ -200,6 +216,11 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (!userData) {
+      setBookingError("User data not loaded. Please refresh the page and try again.");
+      return;
+    }
+
     setShowPaymentMethods(true);
   };
 
@@ -209,7 +230,18 @@ const CheckoutPage = () => {
 
   const createBooking = async (paymentMethod) => {
     try {
-      if (!token) throw new Error("User not logged in.");
+      if (!token) {
+        throw new Error("User not logged in. Please log in and try again.");
+      }
+
+      if (!userData?.id) {
+        throw new Error("User data not available. Please refresh the page and try again.");
+      }
+
+      const validPaymentMethods = ["CASH_ON_CENTER", "ONLINE"];
+      if (!validPaymentMethods.includes(paymentMethod)) {
+        throw new Error("Invalid payment method selected.");
+      }
 
       const formatToLocalDateTime = (date) => {
         const d = new Date(date);
@@ -218,63 +250,105 @@ const CheckoutPage = () => {
 
       const bookingDetails = {
         vehicleId: bike.id,
-        userId: user.id,
+        userId: userData.id,
         packageId: selectedPackage.id,
-        totalAmount: totalAmountBeforeDiscount - discount,
+        totalAmount: payableAmount,
         addressType: pickupOption,
         deliveryLocation: pickupOption === "DELIVERY_AT_LOCATION" ? JSON.stringify(addressDetails) : "",
         deliverySelected: pickupOption === "DELIVERY_AT_LOCATION",
-        startTime: formatToLocalDateTime(pickupDate),
-        endTime: formatToLocalDateTime(dropDate),
+        startDate: formatToLocalDateTime(pickupDate),
+        endDate: formatToLocalDateTime(dropDate),
         damage: 0.0,
         challan: 0.0,
         additionalCharges: 0.0,
         paymentMethod: paymentMethod,
-        couponCode: appliedCoupon?.code || null,
+        couponCode: appliedCoupon?.couponCode || null,
+        deliveryCharge: deliveryCharge,
+        depositAmount: depositAmount,
+        storeId: checkoutData.storeId,
       };
 
+      console.log("Sending booking details:", bookingDetails);
+
+      const endpoint = paymentMethod === "ONLINE" ? "/booking/create" : "/booking/book";
+
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/booking/book`,
+        `${import.meta.env.VITE_BASE_URL}${endpoint}`,
         bookingDetails,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      console.log("Booking response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Booking creation failed:", error);
-      throw error;
+      
+      // Extract meaningful error message
+      let errorMessage = "Booking failed. Please try again.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data) {
+        errorMessage = typeof error.response.data === 'string' 
+          ? error.response.data 
+          : JSON.stringify(error.response.data);
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   };
 
   const handlePaymentSuccess = (bookingData) => {
-    const completeOrder = {
-      ...bookingData,
-      bikeDetails: bike,
-      totalPrice: totalAmountBeforeDiscount - discount,
-      rentalDays,
-      selectedPackage,
-      pickupOption,
-      addressDetails,
-      pickupDate,
-      dropDate,
-      status: "Confirmed",
-    };
+    try {
+      console.log("Payment success with booking data:", bookingData);
+      
+      const completeOrder = {
+        ...bookingData,
+        bikeDetails: bike,
+        totalPrice: payableAmount,
+        rentalDays,
+        selectedPackage,
+        pickupOption,
+        addressDetails,
+        pickupDate,
+        dropDate,
+        status: "Confirmed",
+      };
 
-    setDocumentMessage(bookingData.documentMessage || "");
-    setBookingConfirmed(true);
-    addOrder({ completeOrder });
-    navigate("/orders");
+      // Extract document message from various possible locations
+      const docMessage = bookingData.documentMessage || 
+                        bookingData.message || 
+                        bookingData.data?.documentMessage || 
+                        bookingData.data?.message || 
+                        "";
+
+      setDocumentMessage(docMessage);
+      setBookingConfirmed(true);
+      addOrder(completeOrder);
+      
+      // Clear any previous errors
+      setBookingError("");
+      setShowPaymentMethods(false);
+    } catch (error) {
+      console.error("Error processing payment success:", error);
+      setBookingError("Booking completed but there was an issue processing the response. Please check your orders.");
+    }
   };
 
   const handleCODPayment = async () => {
     setShowConfirmation(false);
+    setShowPaymentMethods(false);
     setIsProcessing(true);
+    setBookingError(""); // Clear previous errors
 
     try {
       const bookingData = await createBooking("CASH_ON_CENTER");
       handlePaymentSuccess(bookingData);
     } catch (error) {
-      setBookingError(error.response?.data?.message || "Booking failed");
+      console.error("COD Payment failed:", error);
+      setBookingError(error.message || "Cash on Delivery booking failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -283,26 +357,54 @@ const CheckoutPage = () => {
   const handleOnlinePayment = async () => {
     setShowConfirmation(false);
     setIsProcessing(true);
+    setBookingError(""); // Clear previous errors
 
     try {
       const bookingData = await createBooking("ONLINE");
-      handlePaymentSuccess(bookingData);
+      setBookingData(bookingData);
+      // Keep payment methods open for Razorpay integration
+      setShowPaymentMethods(true);
     } catch (error) {
-      setBookingError(error.response?.data?.message || "Booking failed");
+      console.error("Online Payment setup failed:", error);
+      setBookingError(error.message || "Online payment setup failed. Please try again.");
+      setShowPaymentMethods(false);
     } finally {
       setIsProcessing(false);
     }
   };
-
-  const [bookingError, setBookingError] = useState("");
 
   const formatDate = (date) => {
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
     return new Date(date).toLocaleDateString('en-GB', options);
   };
 
-  if (loadingData || couponLoading) {
-    return <div className="text-center py-8">Loading booking details...</div>;
+  // Show loading state
+  if (!tokenLoaded || couponLoading || loadingData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p>Loading booking details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if userData failed to load
+  if (!userData && !bookingError) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">Failed to load user data</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -344,18 +446,22 @@ const CheckoutPage = () => {
                 </div>
               </div>
             </div>
-
-            {pickupOption === "DELIVERY_AT_LOCATION" && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-700">
-                  <FaMapMarkerAlt className="inline mr-2 text-orange-500" />
-                  Delivery Address
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {addressDetails?.fullAddress || "Our Store Location: Rental Street"}
-                </p>
-              </div>
-            )}
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700">
+                <FaMapMarkerAlt className="inline mr-2 text-orange-500" />
+                {pickupOption}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {pickupOption === "SELF_PICKUP" ? storeName : addressDetails?.fullAddress || "Our Store Location: Rental Street"}
+              </p>
+              {pickupOption === "DELIVERY_AT_LOCATION" && (
+                <div>
+                  <p className="text-sm text-gray-600">Pin Code: {addressDetails?.pinCode}</p>
+                  <p className="text-sm text-gray-600">Nearby Landmark: {addressDetails?.nearby}</p>
+                </div>
+              )}
+            </div>
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-700">Terms & Conditions</h3>
@@ -369,7 +475,7 @@ const CheckoutPage = () => {
           </div>
 
           <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-700">Apply Coupon</h3>
               <div className="space-y-3">
                 <div>
@@ -378,6 +484,7 @@ const CheckoutPage = () => {
                     value={selectedCouponFromDropdown}
                     onChange={handleDropdownChange}
                     className="w-full p-2 border rounded"
+                    disabled={coupons.length === 0}
                   >
                     <option value="">Select a Coupon</option>
                     {coupons.map((coupon) => (
@@ -393,7 +500,10 @@ const CheckoutPage = () => {
                   <input
                     type="text"
                     value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value);
+                      setCouponError(""); // Clear error when user types
+                    }}
                     placeholder="Enter coupon code"
                     className="w-full p-2 border rounded"
                   />
@@ -401,13 +511,30 @@ const CheckoutPage = () => {
 
                 <button
                   onClick={handleApplyCoupon}
-                  className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"
+                  className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={(!couponCode.trim() && !selectedCouponFromDropdown) || !userData}
                 >
                   Apply Coupon
                 </button>
 
                 {couponError && (
-                  <p className="text-red-500 text-sm mt-1">{couponError}</p>
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-100 p-3 text-red-700 shadow-sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 flex-shrink-0 text-red-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.054 0 1.578-1.14.832-1.962L13.832 4.962a1.25 1.25 0 00-1.664 0L4.25 17.038c-.746.822-.222 1.962.832 1.962z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium">{couponError}</p>
+                  </div>
                 )}
 
                 {appliedCoupon && (
@@ -424,59 +551,60 @@ const CheckoutPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Price Details</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Base Price:</span>
-                  <span>₹{basePrice}</span>
-                </div>
-
-                {deliveryCharge > 0 && (
-                  <div className="flex justify-between">
-                    <span>Delivery Charge:</span>
-                    <span>₹{deliveryCharge}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between">
-                  <span>GST (18%):</span>
-                  <span>₹{gstAmount.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Security Deposit:</span>
-                  <span className="text-green-500 font-semibold">
-                    (Refundable) ₹{depositAmount}
-                  </span>
-                </div>
-
-                {discount > 0 && (
-                  <div className="flex justify-between text-teal-500">
-                    <span>Discount:</span>
-                    <span>-₹{discount.toFixed(2)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between font-semibold border-t pt-2">
-                  <span>Total Payable:</span>
-                  <span>₹{(totalAmountBeforeDiscount - discount).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+  <h3 className="text-lg font-semibold text-gray-700">Price Details</h3>
+  <div className="space-y-2 text-sm">
+    <div className="flex justify-between">
+      <span>Total Price:</span>
+      <span>₹{basePrice}</span>
+    </div>
+    <div className="flex justify-between text-pink-500">
+      <span>Delivery Charge:</span>
+      <span>₹{deliveryCharge}</span>
+    </div>
+    <div className="flex justify-between text-pink-500">
+      <span>Security Deposit:</span>
+      <span className="text-green-500 font-semibold">
+        (Refundable after trip) ₹{depositAmount}
+      </span>
+    </div>
+    <div className="flex justify-between text-pink-500">
+      <span>GST (18%):</span>
+      <span>₹{gstAmount.toFixed(2)}</span>
+    </div>
+    <div className="flex justify-between text-pink-500">
+      <span>Convenience Fee:</span>
+      <span>₹{convenienceFee}</span>
+    </div>
+    {discount > 0 && (
+      <div className="flex justify-between text-teal-500">
+        <span>Discount:</span>
+        <span>-₹{discount}</span>
+      </div>
+    )}
+    <div className="flex justify-between font-semibold border-t pt-2">
+      <span>Total Payable:</span>
+      <span>₹{payableAmount.toFixed(2)}</span>
+    </div>
+  </div>
+</div>
 
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={termsAccepted}
-                  onChange={handleCheckboxChange}
+                  onChange={() => {
+                    setTermsAccepted(!termsAccepted);
+                    sessionStorage.setItem("termsAccepted", JSON.stringify(!termsAccepted));
+                  }}
                   className="h-4 w-4"
                 />
                 <span className="text-sm">I agree to terms & conditions</span>
               </div>
+              
               <AnimatePresence>
                 {showTermsError && (
                   <motion.div
@@ -489,33 +617,24 @@ const CheckoutPage = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <p className="text-left mt-1 font-semibold">
-                Total Payment in Words: {convertToWords(totalAmountBeforeDiscount - discount)}
-              </p>
+              
+              <button
+                onClick={handleConfirmationRequest}
+                disabled={isProcessing || !userData}
+                className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                  isProcessing || !userData
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+              >
+                {isProcessing ? "Processing..." : `Confirm Booking: ₹${payableAmount.toFixed(2)}`}
+              </button>
             </div>
-
-            <button
-              onClick={handleConfirmationRequest}
-              disabled={isProcessing}
-              className={`w-full py-2 px-4 rounded-lg transition-colors ${
-                isProcessing
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
-              }`}
-            >
-              {isProcessing ? "Processing..." : `Pay Now`}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* <button
-        onClick={handleRefresh}
-        className="fixed bottom-4 right-4 bg-orange-500 text-white p-3 square shadow-lg z-50 flex items-center gap-2"
-      >
-        <FaSyncAlt size={24} />
-      </button> */}
-
+      {/* Payment Methods Modal */}
       <AnimatePresence>
         {showPaymentMethods && (
           <motion.div
@@ -540,20 +659,71 @@ const CheckoutPage = () => {
                     isProcessing ? "cursor-not-allowed opacity-75" : ""
                   }`}
                 >
-                  Cash on Delivery (COD)
+                  {isProcessing ? "Processing..." : "Cash on Delivery (COD)"}
                 </button>
 
-                <div className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg text-center">
-                  Razorpay - Coming Soon
-                </div>
+                {/* <AsyncRazorpayButton
+                  bikeModel={bike?.model}
+                  customer={userData}
+                  createBooking={createBooking}
+                  onSuccess={handlePaymentSuccess}
+                  onError={(error) => {
+                    console.error("Razorpay error:", error);
+                    setBookingError(error.message || "Payment failed. Please try again.");
+                    setShowPaymentMethods(false);
+                  }}
+                /> */}
               </div>
               <button
                 onClick={() => setShowPaymentMethods(false)}
                 disabled={isProcessing}
-                className="mt-4 w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="mt-4 w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmation && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full m-4"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25 }}
+            >
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Booking</h3>
+              <p className="text-gray-600 mb-6">Are you sure you want to confirm your booking for {bike?.model}?</p>
+
+              <div className="bg-orange-50 border border-orange-200 p-3 rounded-md mb-6">
+                <p className="text-orange-700 font-medium">Total Amount: ₹{payableAmount.toFixed(2)}</p>
+                <p className="text-orange-600 text-sm">Duration: {rentalDays} Days</p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowConfirmation(false)}
+                  className="flex-1 py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePayNow}
+                  className="flex-1 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
