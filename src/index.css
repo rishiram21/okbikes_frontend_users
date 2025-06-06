@@ -13,24 +13,19 @@ body {
   font-family: 'Inter', sans-serif;
 } */
 
-
-
-
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@300..900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-  font-family: 'Rubik', sans-serif;
+  font-family: "Rubik", sans-serif;
 }
 
 body {
-  font-family: 'Rubik', sans-serif;
+  font-family: "Rubik", sans-serif;
 }
-
-
 
 /* @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -46,3 +41,137 @@ body {
 body {
   font-family: 'Poppins', sans-serif;
 } */
+/* Add this to your CSS file */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translate(0);
+  }
+}
+
+.animate-pulse-once {
+  animation: pulse 1.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce 1.5s ease-in-out;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slide-in-from-bottom {
+  animation: slideInFromBottom 0.5s ease-out;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Custom dropdown animation */
+select {
+  transition: all 0.3s ease;
+}
+
+select:focus {
+  border-color: #ec5a05;
+  box-shadow: 0 0 0 3px rgba(236, 90, 5, 0.3);
+  outline: none;
+}
+
+select option {
+  background-color: white;
+  transition: background-color 0.3s ease;
+}
+
+select option:hover {
+  background-color: rgba(236, 90, 5, 0.1);
+}
+
+select option:checked {
+  background-color: rgba(236, 90, 5, 0.2);
+}

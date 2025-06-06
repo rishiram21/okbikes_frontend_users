@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGlobalState } from "../context/GlobalStateContext";
-import { FaRegCalendarAlt, FaMapMarkerAlt, FaClipboardCheck, FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaRegCalendarAlt,
+  FaMapMarkerAlt,
+  FaClipboardCheck,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -18,7 +23,8 @@ const CheckoutPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [couponLoading, setCouponLoading] = useState(true);
   const [couponCode, setCouponCode] = useState("");
-  const [selectedCouponFromDropdown, setSelectedCouponFromDropdown] = useState("");
+  const [selectedCouponFromDropdown, setSelectedCouponFromDropdown] =
+    useState("");
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -33,24 +39,25 @@ const CheckoutPage = () => {
   const [bookingError, setBookingError] = useState("");
   const [bookingData, setBookingData] = useState(null);
 
-  // console.log("CheckoutPage - storeId:", checkoutData.storeId);
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
-        if (!token) {
+        const storedToken = localStorage.getItem("jwtToken");
+        if (!storedToken) {
           navigate("/login");
           return;
         }
 
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/profile`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/users/profile`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${storedToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch user profile");
@@ -60,8 +67,9 @@ const CheckoutPage = () => {
         setUserData(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
-        setBookingError("Failed to load user profile. Please try again.");
-        // Don't navigate away immediately, give user a chance to retry
+        setBookingError(
+          "Failed to load user profile. Please refresh the page or try again later."
+        );
       }
     };
 
@@ -71,12 +79,15 @@ const CheckoutPage = () => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/coupons/all`);
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/coupons/all`
+        );
         setCoupons(response.data);
       } catch (error) {
         console.error("Failed to fetch coupons:", error);
-        // Set a user-friendly error message but don't block the checkout
-        setCouponError("Failed to load available coupons. You can still proceed without a coupon.");
+        setCouponError(
+          "Failed to load available coupons. You can still proceed without a coupon."
+        );
       } finally {
         setCouponLoading(false);
       }
@@ -84,7 +95,7 @@ const CheckoutPage = () => {
 
     const loadCheckoutData = () => {
       const sessionData = sessionStorage.getItem("checkoutData");
-      const termsAccepted = sessionStorage.getItem("termsAccepted");
+      const termsAcceptedSession = sessionStorage.getItem("termsAccepted");
 
       if (location.state) {
         setCheckoutData(location.state);
@@ -93,8 +104,8 @@ const CheckoutPage = () => {
         setCheckoutData(JSON.parse(sessionData));
       }
 
-      if (termsAccepted) {
-        setTermsAccepted(JSON.parse(termsAccepted));
+      if (termsAcceptedSession) {
+        setTermsAccepted(JSON.parse(termsAcceptedSession));
       }
     };
 
@@ -107,7 +118,7 @@ const CheckoutPage = () => {
       if (sessionData) {
         setCheckoutData(JSON.parse(sessionData));
       }
-    }, 1000); // Added missing interval time
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [location.state]);
@@ -121,18 +132,17 @@ const CheckoutPage = () => {
     pickupDate = new Date(),
     dropDate = new Date(),
     storeName = "",
-    totalPrice = 0
+    totalPrice = 0,
   } = checkoutData;
 
   const depositAmount = bike?.deposit || 0;
   const deliveryCharge = pickupOption === "DELIVERY_AT_LOCATION" ? 250 : 0;
   const convenienceFee = 2;
   const basePrice = totalPrice;
-  const taxableAmount = basePrice;
+  const taxableAmount = basePrice + deliveryCharge + convenienceFee;
   const gstAmount = taxableAmount * 0.18;
-  // const totalAmountBeforeDiscount = basePrice + deliveryCharge + gstAmount + depositAmount;
-  // const payableAmount = Math.max(0, totalAmountBeforeDiscount - discount);
-  const totalAmountBeforeDiscount = basePrice + deliveryCharge + gstAmount + depositAmount + convenienceFee;
+  const totalAmountBeforeDiscount =
+    basePrice + deliveryCharge + gstAmount + depositAmount + convenienceFee;
   const payableAmount = Math.max(0, totalAmountBeforeDiscount - discount);
 
   const handleDropdownChange = (e) => {
@@ -141,7 +151,6 @@ const CheckoutPage = () => {
     if (selectedValue) {
       setCouponCode(selectedValue);
     }
-    // Clear previous errors when user makes a new selection
     setCouponError("");
   };
 
@@ -150,12 +159,16 @@ const CheckoutPage = () => {
     const codeToApply = trimmedCouponCode || selectedCouponFromDropdown;
 
     if (!codeToApply) {
-      setCouponError("Please enter a coupon code or select one from the dropdown.");
+      setCouponError(
+        "Please enter a coupon code or select one from the dropdown."
+      );
       return;
     }
 
     if (!userData?.id) {
-      setCouponError("User data not loaded. Please refresh the page and try again.");
+      setCouponError(
+        "User data not loaded. Please refresh the page and try again."
+      );
       return;
     }
 
@@ -166,37 +179,49 @@ const CheckoutPage = () => {
     };
 
     try {
-      setCouponError(""); // Clear previous errors
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/coupons/apply`, payload);
+      setCouponError("");
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/coupons/apply`,
+        payload
+      );
 
       if (response.status === 200) {
-        const appliedCouponData = coupons.find(coupon => coupon.couponCode === codeToApply);
+        const appliedCouponData = coupons.find(
+          (coupon) => coupon.couponCode === codeToApply
+        );
 
         if (appliedCouponData) {
           let calculatedDiscount = 0;
 
-          if (appliedCouponData.couponType === 'PERCENTAGE') {
-            calculatedDiscount = (basePrice * appliedCouponData.discountValue) / 100;
-          } else if (appliedCouponData.couponType === 'FIXED_VALUE') {
+          if (appliedCouponData.couponType === "PERCENTAGE") {
+            calculatedDiscount =
+              (basePrice * appliedCouponData.discountValue) / 100;
+          } else if (appliedCouponData.couponType === "FIXED_VALUE") {
             calculatedDiscount = appliedCouponData.discountValue;
           }
 
-          calculatedDiscount = Math.min(calculatedDiscount, basePrice + deliveryCharge);
+          calculatedDiscount = Math.min(
+            calculatedDiscount,
+            basePrice + deliveryCharge
+          );
 
           setAppliedCoupon(appliedCouponData);
           setDiscount(calculatedDiscount);
           setCouponError("");
         } else {
-          setCouponError("Coupon applied but details not found. Please contact support.");
+          setCouponError(
+            "Coupon applied but details not found. Please contact support."
+          );
         }
       } else {
         setCouponError("Failed to apply coupon. Please try again.");
       }
     } catch (error) {
       console.error("Error applying coupon:", error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data || 
-                          "Error applying coupon. Please check the code and try again.";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        "Error applying coupon. Please check the code and try again.";
       setCouponError(errorMessage);
     }
   };
@@ -217,7 +242,9 @@ const CheckoutPage = () => {
     }
 
     if (!userData) {
-      setBookingError("User data not loaded. Please refresh the page and try again.");
+      setBookingError(
+        "User data not loaded. Please refresh the page and try again."
+      );
       return;
     }
 
@@ -235,7 +262,9 @@ const CheckoutPage = () => {
       }
 
       if (!userData?.id) {
-        throw new Error("User data not available. Please refresh the page and try again.");
+        throw new Error(
+          "User data not available. Please refresh the page and try again."
+        );
       }
 
       const validPaymentMethods = ["CASH_ON_CENTER", "ONLINE"];
@@ -254,7 +283,10 @@ const CheckoutPage = () => {
         packageId: selectedPackage.id,
         totalAmount: payableAmount,
         addressType: pickupOption,
-        deliveryLocation: pickupOption === "DELIVERY_AT_LOCATION" ? JSON.stringify(addressDetails) : "",
+        deliveryLocation:
+          pickupOption === "DELIVERY_AT_LOCATION"
+            ? JSON.stringify(addressDetails)
+            : "",
         deliverySelected: pickupOption === "DELIVERY_AT_LOCATION",
         startDate: formatToLocalDateTime(pickupDate),
         endDate: formatToLocalDateTime(dropDate),
@@ -270,7 +302,8 @@ const CheckoutPage = () => {
 
       console.log("Sending booking details:", bookingDetails);
 
-      const endpoint = paymentMethod === "ONLINE" ? "/booking/create" : "/booking/book";
+      const endpoint =
+        paymentMethod === "ONLINE" ? "/booking/create" : "/booking/book";
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}${endpoint}`,
@@ -282,30 +315,30 @@ const CheckoutPage = () => {
       return response.data;
     } catch (error) {
       console.error("Booking creation failed:", error);
-      
-      // Extract meaningful error message
+
       let errorMessage = "Booking failed. Please try again.";
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data) {
-        errorMessage = typeof error.response.data === 'string' 
-          ? error.response.data 
-          : JSON.stringify(error.response.data);
+        errorMessage =
+          typeof error.response.data === "string"
+            ? error.response.data
+            : JSON.stringify(error.response.data);
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     }
   };
 
-  const handlePaymentSuccess = (bookingData) => {
+  const handlePaymentSuccess = (bookingDataResponse) => {
     try {
-      console.log("Payment success with booking data:", bookingData);
-      
+      console.log("Payment success with booking data:", bookingDataResponse);
+
       const completeOrder = {
-        ...bookingData,
+        ...bookingDataResponse,
         bikeDetails: bike,
         totalPrice: payableAmount,
         rentalDays,
@@ -317,23 +350,24 @@ const CheckoutPage = () => {
         status: "Confirmed",
       };
 
-      // Extract document message from various possible locations
-      const docMessage = bookingData.documentMessage || 
-                        bookingData.message || 
-                        bookingData.data?.documentMessage || 
-                        bookingData.data?.message || 
-                        "";
+      const docMessage =
+        bookingDataResponse.documentMessage ||
+        bookingDataResponse.message ||
+        bookingDataResponse.data?.documentMessage ||
+        bookingDataResponse.data?.message ||
+        "";
 
       setDocumentMessage(docMessage);
       setBookingConfirmed(true);
       addOrder(completeOrder);
-      
-      // Clear any previous errors
+
       setBookingError("");
       setShowPaymentMethods(false);
     } catch (error) {
       console.error("Error processing payment success:", error);
-      setBookingError("Booking completed but there was an issue processing the response. Please check your orders.");
+      setBookingError(
+        "Booking completed but there was an issue processing the response. Please check your orders."
+      );
     }
   };
 
@@ -341,14 +375,16 @@ const CheckoutPage = () => {
     setShowConfirmation(false);
     setShowPaymentMethods(false);
     setIsProcessing(true);
-    setBookingError(""); // Clear previous errors
+    setBookingError("");
 
     try {
       const bookingData = await createBooking("CASH_ON_CENTER");
       handlePaymentSuccess(bookingData);
     } catch (error) {
       console.error("COD Payment failed:", error);
-      setBookingError(error.message || "Cash on Delivery booking failed. Please try again.");
+      setBookingError(
+        error.message || "Cash on Delivery booking failed. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -357,16 +393,17 @@ const CheckoutPage = () => {
   const handleOnlinePayment = async () => {
     setShowConfirmation(false);
     setIsProcessing(true);
-    setBookingError(""); // Clear previous errors
+    setBookingError("");
 
     try {
-      const bookingData = await createBooking("ONLINE");
-      setBookingData(bookingData);
-      // Keep payment methods open for Razorpay integration
+      const bookingDataFromAPI = await createBooking("ONLINE");
+      setBookingData(bookingDataFromAPI);
       setShowPaymentMethods(true);
     } catch (error) {
       console.error("Online Payment setup failed:", error);
-      setBookingError(error.message || "Online payment setup failed. Please try again.");
+      setBookingError(
+        error.message || "Online payment setup failed. Please try again."
+      );
       setShowPaymentMethods(false);
     } finally {
       setIsProcessing(false);
@@ -374,34 +411,50 @@ const CheckoutPage = () => {
   };
 
   const formatDate = (date) => {
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return new Date(date).toLocaleDateString('en-GB', options);
+    const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+    return new Date(date).toLocaleDateString("en-GB", options);
   };
 
-  // Show loading state
   if (!tokenLoaded || couponLoading || loadingData) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p>Loading booking details...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">
+            Fetching your rental details...
+          </p>
         </div>
       </div>
     );
   }
 
-  // Show error if userData failed to load
-  if (!userData && !bookingError) {
+  if (!userData && bookingError) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center py-8">
-          <p className="text-red-600 mb-4">Failed to load user data</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-center py-8 bg-white p-6 rounded-lg shadow-lg">
+          <FaExclamationTriangle className="text-5xl text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4 font-semibold">{bookingError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors"
           >
-            Retry
+            Refresh Page
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-center py-8 bg-white p-6 rounded-lg shadow-lg">
+          <p className="text-gray-700 mb-4">
+            Attempting to load user profile...
+          </p>
+          <div className="animate-pulse text-orange-500 font-bold">
+            Please wait
+          </div>
         </div>
       </div>
     );
@@ -409,7 +462,7 @@ const CheckoutPage = () => {
 
   return (
     <motion.div
-      className="flex flex-col min-h-screen bg-gray-100 mt-14"
+      className="flex flex-col min-h-screen bg-gray-100 pt-16 pb-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -417,267 +470,279 @@ const CheckoutPage = () => {
       <div className="container mx-auto py-8 px-4 lg:px-8 flex-grow">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-white shadow-lg rounded-lg p-6 space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Rental Summary</h2>
+            <h2 className="text-3xl font-bold text-gray-800 border-b pb-4 mb-4">
+              Your Rental Summary
+            </h2>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6 bg-gray-50 p-4 rounded-lg">
               <img
-                src={bike?.img || "/placeholder-image.jpg"}
+                src={
+                  bike?.img ||
+                  "https://via.placeholder.com/150x100?text=Bike+Image"
+                }
                 alt={bike?.model}
-                className="w-[150px] h-[108px] rounded-lg object-cover"
+                className="w-36 h-24 rounded-lg object-cover shadow-md"
               />
               <div>
-                <h3 className="text-lg font-semibold">{bike?.model}</h3>
-                <p className="text-sm text-gray-600">
-                  Package: {selectedPackage?.days} Days (₹{selectedPackage?.price})
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {bike?.model}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Package: {selectedPackage?.days} Days (₹
+                  {selectedPackage?.price})
                 </p>
-                <p className="text-sm text-gray-600">Duration: {rentalDays} Days</p>
+                <p className="text-sm text-gray-600">
+                  Duration: {rentalDays} Day{rentalDays > 1 ? "s" : ""}
+                </p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">
-                <FaRegCalendarAlt className="inline mr-2 text-orange-500" />
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-xl font-semibold text-gray-700 flex items-center">
+                <FaRegCalendarAlt className="inline mr-3 text-orange-500 text-2xl" />
                 Pickup/Drop Dates
               </h3>
-              <div className="flex items-center space-x-2">
-                <div className="text-sm">
-                  <p>Pickup: {formatDate(pickupDate)}</p>
-                  <p>Drop: {formatDate(dropDate)}</p>
+              <div className="grid grid-cols-2 gap-4 text-base">
+                <div className="p-3 bg-blue-50 rounded-md">
+                  <p className="font-medium text-gray-800">Pickup Date:</p>
+                  <p className="text-blue-700">{formatDate(pickupDate)}</p>
+                </div>
+                <div className="p-3 bg-red-50 rounded-md">
+                  <p className="font-medium text-gray-800">Drop Date:</p>
+                  <p className="text-red-700">{formatDate(dropDate)}</p>
                 </div>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">
-                <FaMapMarkerAlt className="inline mr-2 text-orange-500" />
-                {pickupOption}
+
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-xl font-semibold text-gray-700 flex items-center">
+                <FaMapMarkerAlt className="inline mr-3 text-orange-500 text-2xl" />
+                {pickupOption === "SELF_PICKUP"
+                  ? "Self-Pickup Location"
+                  : "Delivery Address"}
               </h3>
-              <p className="text-sm text-gray-600">
-                {pickupOption === "SELF_PICKUP" ? storeName : addressDetails?.fullAddress || "Our Store Location: Rental Street"}
-              </p>
-              {pickupOption === "DELIVERY_AT_LOCATION" && (
-                <div>
-                  <p className="text-sm text-gray-600">Pin Code: {addressDetails?.pinCode}</p>
-                  <p className="text-sm text-gray-600">Nearby Landmark: {addressDetails?.nearby}</p>
-                </div>
-              )}
+              <div className="bg-gray-50 p-4 rounded-lg text-base text-gray-700">
+                {pickupOption === "SELF_PICKUP" ? (
+                  <p className="font-medium">
+                    {storeName || "Our Main Rental Center"}
+                  </p>
+                ) : (
+                  <>
+                    <p className="font-medium">{addressDetails?.fullAddress}</p>
+                    <p>Pin Code: {addressDetails?.pinCode}</p>
+                    {addressDetails?.nearby && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Landmark: {addressDetails?.nearby}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Terms & Conditions</h3>
-              <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
-                <li>Valid ID required at pickup</li>
-                <li>Fuel costs borne by renter</li>
-                <li>Late return penalties apply</li>
-                <li>Vehicle must be returned in original condition</li>
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-xl font-semibold text-gray-700">
+                Terms & Conditions
+              </h3>
+              <ul className="text-sm text-gray-600 list-disc pl-5 space-y-2 bg-gray-50 p-4 rounded-lg">
+                <li>
+                  Valid Driving License (DL) and Aadhar Card (or Passport for
+                  foreigners) are mandatory and must be presented at the time of
+                  pickup.
+                </li>
+                <li>
+                  Fuel costs are the responsibility of the renter. The vehicle
+                  will be provided with a certain fuel level and must be
+                  returned with the same level.
+                </li>
+                <li>
+                  Late return of the vehicle will incur additional charges,
+                  typically calculated per hour or per day beyond the agreed
+                  drop-off time.
+                </li>
+                <li>
+                  The vehicle must be returned in the same condition as it was
+                  picked up, barring normal wear and tear. Any damages will be
+                  assessed and deducted from the security deposit.
+                </li>
+                <li>
+                  In case of breakdown or accident, the renter must immediately
+                  inform the rental provider. Unauthorized repairs are not
+                  permitted.
+                </li>
+                <li>
+                  The security deposit is refundable after a thorough inspection
+                  of the vehicle, typically within 3-7 business days, provided
+                  there are no damages or outstanding dues.
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Apply Coupon</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Select Available Coupon:</label>
-                  <select
-                    value={selectedCouponFromDropdown}
-                    onChange={handleDropdownChange}
-                    className="w-full p-2 border rounded"
-                    disabled={coupons.length === 0}
-                  >
-                    <option value="">Select a Coupon</option>
-                    {coupons.map((coupon) => (
-                      <option key={coupon.couponId} value={coupon.couponCode}>
-                        {coupon.couponCode} - {coupon.couponType === 'PERCENTAGE' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
-                      </option>
-                    ))}
-                  </select>
+          <div className="bg-white shadow-lg rounded-lg p-6 space-y-6 h-fit sticky top-20">
+            <div className="space-y-4 pt-4">
+              <h3 className="text-2xl font-bold text-gray-800">
+                Price Details
+              </h3>
+              <div className="space-y-2 text-base text-gray-700">
+                <div className="flex justify-between">
+                  <span>Base Price:</span>
+                  <span>₹{basePrice.toFixed(2)}</span>
                 </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Or Enter Coupon Code:</label>
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => {
-                      setCouponCode(e.target.value);
-                      setCouponError(""); // Clear error when user types
-                    }}
-                    placeholder="Enter coupon code"
-                    className="w-full p-2 border rounded"
-                  />
+                <div className="flex justify-between">
+                  <span>Delivery Charge:</span>
+                  <span>₹{deliveryCharge.toFixed(2)}</span>
                 </div>
-
-                <button
-                  onClick={handleApplyCoupon}
-                  className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  disabled={(!couponCode.trim() && !selectedCouponFromDropdown) || !userData}
-                >
-                  Apply Coupon
-                </button>
-
-                {couponError && (
-                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-100 p-3 text-red-700 shadow-sm">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 flex-shrink-0 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.054 0 1.578-1.14.832-1.962L13.832 4.962a1.25 1.25 0 00-1.664 0L4.25 17.038c-.746.822-.222 1.962.832 1.962z"
-                      />
-                    </svg>
-                    <p className="text-sm font-medium">{couponError}</p>
+                <div className="flex justify-between">
+                  <span>Convenience Fee:</span>
+                  <span>₹{convenienceFee.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>GST (18%):</span>
+                  <span>₹{gstAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-green-600 font-semibold">
+                  <span>Security Deposit:</span>
+                  <span>₹{depositAmount.toFixed(2)} (Refundable)</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-red-500 font-semibold">
+                    <span>Discount:</span>
+                    <span>-₹{discount.toFixed(2)}</span>
                   </div>
                 )}
-
-                {appliedCoupon && (
-                  <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
-                    <p className="text-green-700 text-sm">
-                      Applied: {appliedCoupon.couponCode} - {appliedCoupon.couponType === 'PERCENTAGE' ? `${appliedCoupon.discountValue}% OFF` : `₹${appliedCoupon.discountValue} OFF`}
-                    </p>
-                    <button
-                      onClick={handleRemoveCoupon}
-                      className="text-red-500 text-xs underline mt-1"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
+                <div className="flex justify-between font-bold text-lg border-t-2 border-gray-200 pt-3 mt-3">
+                  <span>Total Payable:</span>
+                  <span>₹{payableAmount.toFixed(2)}</span>
+                </div>
               </div>
-            </div> */}
-
-            <div className="space-y-4">
-  <h3 className="text-lg font-semibold text-gray-700">Price Details</h3>
-  <div className="space-y-2 text-sm">
-    <div className="flex justify-between">
-      <span>Total Price:</span>
-      <span>₹{basePrice}</span>
-    </div>
-    <div className="flex justify-between text-pink-500">
-      <span>Delivery Charge:</span>
-      <span>₹{deliveryCharge}</span>
-    </div>
-    <div className="flex justify-between text-pink-500">
-      <span>Security Deposit:</span>
-      <span className="text-green-500 font-semibold">
-        (Refundable after trip) ₹{depositAmount}
-      </span>
-    </div>
-    <div className="flex justify-between text-pink-500">
-      <span>GST (18%):</span>
-      <span>₹{gstAmount.toFixed(2)}</span>
-    </div>
-    <div className="flex justify-between text-pink-500">
-      <span>Convenience Fee:</span>
-      <span>₹{convenienceFee}</span>
-    </div>
-    {discount > 0 && (
-      <div className="flex justify-between text-teal-500">
-        <span>Discount:</span>
-        <span>-₹{discount}</span>
-      </div>
-    )}
-    <div className="flex justify-between font-semibold border-t pt-2">
-      <span>Total Payable:</span>
-      <span>₹{payableAmount.toFixed(2)}</span>
-    </div>
-  </div>
-</div>
-
-            <div className="space-y-4">
+            </div>
+            <div className="space-y-4 pt-4 border-t">
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
+                  id="terms-checkbox"
                   checked={termsAccepted}
                   onChange={() => {
                     setTermsAccepted(!termsAccepted);
-                    sessionStorage.setItem("termsAccepted", JSON.stringify(!termsAccepted));
+                    sessionStorage.setItem(
+                      "termsAccepted",
+                      JSON.stringify(!termsAccepted)
+                    );
                   }}
-                  className="h-4 w-4"
+                  className="h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                 />
-                <span className="text-sm">I agree to terms & conditions</span>
+                <label
+                  htmlFor="terms-checkbox"
+                  className="text-base text-gray-700 cursor-pointer"
+                >
+                  I agree to the{" "}
+                  <a href="/terms" className="text-blue-600 hover:underline">
+                    terms & conditions
+                  </a>
+                </label>
               </div>
-              
+
               <AnimatePresence>
                 {showTermsError && (
                   <motion.div
-                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded"
+                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md flex items-center gap-2"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                   >
-                    Please accept the terms & conditions
+                    <FaExclamationTriangle className="h-5 w-5 flex-shrink-0" />
+                    <p className="text-sm font-medium">
+                      Please accept the terms & conditions to proceed.
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <button
                 onClick={handleConfirmationRequest}
                 disabled={isProcessing || !userData}
-                className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                className={`w-full py-3 px-4 rounded-lg text-lg font-semibold transition-colors shadow-md ${
                   isProcessing || !userData
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                    : "bg-orange-600 hover:bg-orange-700 text-white"
                 }`}
               >
-                {isProcessing ? "Processing..." : `Confirm Booking: ₹${payableAmount.toFixed(2)}`}
+                {isProcessing
+                  ? "Processing..."
+                  : `Proceed to Payment: ₹${payableAmount.toFixed(2)}`}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Payment Methods Modal */}
       <AnimatePresence>
         {showPaymentMethods && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full m-4"
-              initial={{ scale: 0.9, y: 20 }}
+              className="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full"
+              initial={{ scale: 0.9, y: 50 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ scale: 0.9, y: 50 }}
+              transition={{ type: "spring", damping: 20, stiffness: 200 }}
             >
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Select Payment Method</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                Select Payment Method
+              </h3>
               <div className="space-y-4">
                 <button
                   onClick={handleCODPayment}
                   disabled={isProcessing}
-                  className={`w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors ${
+                  className={`w-full bg-indigo-600 text-white py-3 rounded-lg text-lg font-medium hover:bg-indigo-700 transition-colors shadow-md ${
                     isProcessing ? "cursor-not-allowed opacity-75" : ""
                   }`}
                 >
-                  {isProcessing ? "Processing..." : "Cash on Delivery (COD)"}
+                  {isProcessing ? "Processing..." : "Cash on Center (COC)"}
                 </button>
 
-                {/* <AsyncRazorpayButton
-                  bikeModel={bike?.model}
-                  customer={userData}
-                  createBooking={createBooking}
-                  onSuccess={handlePaymentSuccess}
-                  onError={(error) => {
-                    console.error("Razorpay error:", error);
-                    setBookingError(error.message || "Payment failed. Please try again.");
-                    setShowPaymentMethods(false);
-                  }}
-                /> */}
+                {bookingData && (
+                  <AsyncRazorpayButton
+                    orderId={bookingData.orderId}
+                    amount={payableAmount.toFixed(2)}
+                    bikeModel={bike?.model}
+                    customer={userData}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(error) => {
+                      console.error("Razorpay error:", error);
+                      setBookingError(
+                        error.message ||
+                          "Online payment failed. Please try again."
+                      );
+                      setShowPaymentMethods(false);
+                      setIsProcessing(false);
+                    }}
+                    buttonText="Pay Online (Razorpay)"
+                  />
+                )}
+                {!bookingData && (
+                  <button
+                    onClick={handleOnlinePayment}
+                    disabled={true}
+                    className="w-full bg-green-500 text-white py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors shadow-md cursor-not-allowed opacity-75"
+                  >
+                    Pay Online
+                  </button>
+                )}
               </div>
               <button
-                onClick={() => setShowPaymentMethods(false)}
+                onClick={() => {
+                  setShowPaymentMethods(false);
+                  setBookingData(null);
+                  setIsProcessing(false);
+                }}
                 disabled={isProcessing}
-                className="mt-4 w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+                className="mt-6 w-full bg-gray-200 text-gray-700 py-3 rounded-lg text-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -685,91 +750,56 @@ const CheckoutPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {showConfirmation && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full m-4"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Booking</h3>
-              <p className="text-gray-600 mb-6">Are you sure you want to confirm your booking for {bike?.model}?</p>
-
-              <div className="bg-orange-50 border border-orange-200 p-3 rounded-md mb-6">
-                <p className="text-orange-700 font-medium">Total Amount: ₹{payableAmount.toFixed(2)}</p>
-                <p className="text-orange-600 text-sm">Duration: {rentalDays} Days</p>
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowConfirmation(false)}
-                  className="flex-1 py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePayNow}
-                  className="flex-1 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
-                >
-                  Confirm
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence>
         {bookingConfirmed && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full text-center"
-              initial={{ scale: 0.5, opacity: 0 }}
+              className="bg-white p-8 rounded-xl shadow-3xl max-w-sm w-full text-center"
+              initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", damping: 15 }}
+              transition={{ type: "spring", damping: 12, stiffness: 100 }}
             >
-              <div className="w-24 h-24 bg-green-100 rounded-full mx-auto flex items-center justify-center">
-                <FaClipboardCheck className="text-5xl text-green-500" />
-              </div>
+              <motion.div
+                className="w-28 h-28 bg-green-100 rounded-full mx-auto flex items-center justify-center mb-6"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", damping: 10 }}
+              >
+                <FaClipboardCheck className="text-6xl text-green-600" />
+              </motion.div>
 
-              <h2 className="text-2xl font-bold mt-6 mb-2 text-gray-800">
+              <h2 className="text-3xl font-extrabold mt-6 mb-3 text-gray-900">
                 Booking Confirmed!
               </h2>
 
-              <p className="text-gray-600 mb-6">
-                Your booking for {bike?.model} has been successfully confirmed.
+              <p className="text-lg text-gray-700 mb-6">
+                Your booking for{" "}
+                <span className="font-semibold">{bike?.model}</span> has been
+                successfully placed.
               </p>
 
               {documentMessage && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
-                  <p className="font-bold">Document Verification Message:</p>
-                  <p>{documentMessage}</p>
+                <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 mb-6 rounded-md text-left">
+                  <p className="font-bold text-blue-900 mb-1">Important:</p>
+                  <p className="text-sm">{documentMessage}</p>
                 </div>
               )}
 
               <div className="flex justify-center space-x-4">
                 <button
-                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-orange-600 text-white px-6 py-3 rounded-md text-lg font-semibold hover:bg-orange-700 transition-colors shadow-md"
                   onClick={() => {
                     navigate("/orders");
+                    sessionStorage.removeItem("checkoutData");
+                    sessionStorage.removeItem("termsAccepted");
                   }}
                 >
-                  OK
+                  View My Bookings
                 </button>
               </div>
             </motion.div>
@@ -780,59 +810,40 @@ const CheckoutPage = () => {
       <AnimatePresence>
         {bookingError && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full text-center"
-              initial={{ scale: 0.5, opacity: 0 }}
+              className="bg-white p-8 rounded-xl shadow-3xl max-w-sm w-full text-center"
+              initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", damping: 15 }}
+              transition={{ type: "spring", damping: 12, stiffness: 100 }}
             >
               <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
+                className="w-28 h-28 bg-red-100 rounded-full mx-auto flex items-center justify-center mb-6"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", damping: 10 }}
               >
-                <motion.div
-                  className="w-24 h-24 bg-red-100 rounded-full mx-auto flex items-center justify-center"
-                  animate={{
-                    scale: [1, 1.1, 1],
-                  }}
-                  transition={{ duration: 1, repeat: 3 }}
-                >
-                  <FaExclamationTriangle className="text-5xl text-red-500" />
-                </motion.div>
+                <FaExclamationTriangle className="text-6xl text-red-600" />
               </motion.div>
 
-              <motion.h2
-                className="text-2xl font-bold mt-6 mb-2 text-gray-800"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                Booking Failed
-              </motion.h2>
+              <h2 className="text-3xl font-extrabold mt-6 mb-3 text-gray-900">
+                Booking Failed!
+              </h2>
 
-              <motion.p
-                className="text-gray-600 mb-6"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                {bookingError}
-              </motion.p>
+              <p className="text-lg text-gray-700 mb-6">{bookingError}</p>
 
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.8 }}
+                transition={{ delay: 0.5 }}
               >
                 <button
                   onClick={() => setBookingError("")}
-                  className="py-2 px-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  className="py-3 px-6 bg-red-600 text-white rounded-md text-lg font-semibold hover:bg-red-700 transition-colors shadow-md"
                 >
                   Try Again
                 </button>

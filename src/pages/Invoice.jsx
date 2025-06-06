@@ -1,135 +1,185 @@
-import React from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import React from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
-const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damages = [], userName, userPhone, vehicleNumber, vehicleModel, packagePrice, securityDeposit, onClose }) => {
+const Invoice = ({
+  booking,
+  charges = [],
+  lateCharges = 0,
+  challans = [],
+  damages = [],
+  userName,
+  userPhone,
+  vehicleNumber,
+  vehicleModel,
+  packagePrice,
+  securityDeposit,
+  onClose,
+}) => {
   const calculateDuration = () => {
-    if (!booking?.startDate || !booking?.endDate) return '';
+    if (!booking?.startDate || !booking?.endDate) return "";
     const start = new Date(booking.startDate);
     const end = new Date(booking.endDate);
     const diffTime = Math.abs(end - start);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffHours = Math.floor(
+      (diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
     const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
 
     let durationText = "";
-    if (diffDays > 0) durationText += `${diffDays} day${diffDays !== 1 ? 's' : ''} `;
-    if (diffHours > 0 || diffDays > 0) durationText += `${diffHours} hour${diffHours !== 1 ? 's' : ''} `;
-    if (diffMinutes > 0 || diffHours > 0 || diffDays > 0) durationText += `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`;
+    if (diffDays > 0)
+      durationText += `${diffDays} day${diffDays !== 1 ? "s" : ""} `;
+    if (diffHours > 0 || diffDays > 0)
+      durationText += `${diffHours} hour${diffHours !== 1 ? "s" : ""} `;
+    if (diffMinutes > 0 || diffHours > 0 || diffDays > 0)
+      durationText += `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
 
     return durationText.trim();
   };
 
-  const today = new Date().toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+  const today = new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 
-  // Enhanced calculation logic from first code
+  // Corrected calculations - package price is already total for duration
   const durationInDays = () => {
     const durationStr = calculateDuration();
     const daysMatch = durationStr.match(/(\d+)\s+day/);
     return daysMatch ? parseInt(daysMatch[1]) : 1; // Default to 1 day if no days found
   };
 
-  const totalPackagePrice = packagePrice * durationInDays();
-  
+  // Use packagePrice directly without multiplying by days
+  const totalPackagePrice = packagePrice;
+
   // Check if delivery charge should be added
-  const deliveryCharge = booking?.addressType === 'DELIVERY_AT_LOCATION' ? 250 : 0;
-  
+  const deliveryCharge =
+    booking?.addressType === "DELIVERY_AT_LOCATION" ? 250 : 0;
+
   const gst = totalPackagePrice * 0.18;
-  const convenienceFee = 2.00;
+  const convenienceFee = 2.0;
+
+  // Calculate subtotal and total
   const subtotal = totalPackagePrice + gst + convenienceFee + deliveryCharge;
-  const additionalChargesTotal = charges.reduce((sum, charge) => sum + Number(charge.amount || 0), 0);
-  const challansTotal = challans.reduce((sum, challan) => sum + Number(challan.amount || 0), 0);
-  const damagesTotal = damages.reduce((sum, damage) => sum + Number(damage.amount || 0), 0);
-  const totalAmount = subtotal + additionalChargesTotal + lateCharges + challansTotal + damagesTotal;
+  const additionalChargesTotal = charges.reduce(
+    (sum, charge) => sum + Number(charge.amount || 0),
+    0
+  );
+  const challansTotal = challans.reduce(
+    (sum, challan) => sum + Number(challan.amount || 0),
+    0
+  );
+  const damagesTotal = damages.reduce(
+    (sum, damage) => sum + Number(damage.amount || 0),
+    0
+  );
+  const totalAmount =
+    subtotal +
+    additionalChargesTotal +
+    lateCharges +
+    challansTotal +
+    damagesTotal;
 
   // Function to handle invoice download as PDF
   const handleDownload = () => {
-    const invoiceElement = document.getElementById('invoice-container');
-    const invoiceId = `OkBikes_Invoice_${booking?.bookingId || 'Invoice'}`;
-    
+    const invoiceElement = document.getElementById("invoice-container");
+    const invoiceId = `okbike_Invoice_${booking?.bookingId || "Invoice"}`;
+
     // Create a temporary status element
-    const downloadStatusElement = document.createElement('div');
-    downloadStatusElement.style.position = 'fixed';
-    downloadStatusElement.style.top = '10px';
-    downloadStatusElement.style.left = '50%';
-    downloadStatusElement.style.transform = 'translateX(-50%)';
-    downloadStatusElement.style.padding = '10px 20px';
-    downloadStatusElement.style.background = '#4CAF50';
-    downloadStatusElement.style.color = 'white';
-    downloadStatusElement.style.borderRadius = '4px';
-    downloadStatusElement.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-    downloadStatusElement.style.zIndex = '9999';
-    downloadStatusElement.textContent = 'Generating PDF...';
+    const downloadStatusElement = document.createElement("div");
+    downloadStatusElement.style.position = "fixed";
+    downloadStatusElement.style.top = "10px";
+    downloadStatusElement.style.left = "50%";
+    downloadStatusElement.style.transform = "translateX(-50%)";
+    downloadStatusElement.style.padding = "10px 20px";
+    downloadStatusElement.style.background = "#4CAF50";
+    downloadStatusElement.style.color = "white";
+    downloadStatusElement.style.borderRadius = "4px";
+    downloadStatusElement.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
+    downloadStatusElement.style.zIndex = "9999";
+    downloadStatusElement.textContent = "Generating PDF...";
     document.body.appendChild(downloadStatusElement);
-    
+
     // Hide the close button and download/print buttons during capture
-    const closeButton = document.getElementById('close-button');
-    const actionButtons = document.getElementById('action-buttons');
+    const closeButton = document.getElementById("close-button");
+    const actionButtons = document.getElementById("action-buttons");
     const originalCloseDisplay = closeButton?.style.display;
     const originalActionDisplay = actionButtons?.style.display;
-    if (closeButton) closeButton.style.display = 'none';
-    if (actionButtons) actionButtons.style.display = 'none';
+    if (closeButton) closeButton.style.display = "none";
+    if (actionButtons) actionButtons.style.display = "none";
 
     // Use html2canvas to capture the invoice
     html2canvas(invoiceElement, {
       scale: 2,
       useCORS: true,
       logging: false,
-      allowTaint: true
-    }).then(canvas => {
-      // Restore the buttons
-      if (closeButton) closeButton.style.display = originalCloseDisplay || '';
-      if (actionButtons) actionButtons.style.display = originalActionDisplay || '';
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+      allowTaint: true,
+    })
+      .then((canvas) => {
+        // Restore the buttons
+        if (closeButton) closeButton.style.display = originalCloseDisplay || "";
+        if (actionButtons)
+          actionButtons.style.display = originalActionDisplay || "";
+
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+        });
+
+        // Calculate dimensions to fit the image properly
+        const imgWidth = 210; // A4 width in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        pdf.save(`${invoiceId}.pdf`);
+
+        // Update status and remove after a delay
+        downloadStatusElement.textContent = "PDF Downloaded Successfully!";
+        setTimeout(() => {
+          if (document.body.contains(downloadStatusElement)) {
+            document.body.removeChild(downloadStatusElement);
+          }
+        }, 2000);
+      })
+      .catch((error) => {
+        console.error("Error generating PDF:", error);
+        downloadStatusElement.textContent = "Error generating PDF";
+        downloadStatusElement.style.background = "#f44336";
+        setTimeout(() => {
+          if (document.body.contains(downloadStatusElement)) {
+            document.body.removeChild(downloadStatusElement);
+          }
+        }, 3000);
       });
-      
-      // Calculate dimensions to fit the image properly
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save(`${invoiceId}.pdf`);
-      
-      // Update status and remove after a delay
-      downloadStatusElement.textContent = 'PDF Downloaded Successfully!';
-      setTimeout(() => {
-        if (document.body.contains(downloadStatusElement)) {
-          document.body.removeChild(downloadStatusElement);
-        }
-      }, 2000);
-    }).catch(error => {
-      console.error('Error generating PDF:', error);
-      downloadStatusElement.textContent = 'Error generating PDF';
-      downloadStatusElement.style.background = '#f44336';
-      setTimeout(() => {
-        if (document.body.contains(downloadStatusElement)) {
-          document.body.removeChild(downloadStatusElement);
-        }
-      }, 3000);
-    });
   };
 
   return (
     <div className="bg-white min-h-screen w-full print:min-h-0 print:w-auto relative">
       {/* Close Button - Positioned outside the header area */}
-      <button 
+      <button
         id="close-button"
         onClick={onClose}
         className="fixed top-6 right-6 z-50 text-white bg-gray-700 hover:bg-gray-800 rounded-full p-3 shadow-lg print:hidden transition-colors duration-200"
         style={{ zIndex: 9999 }}
         aria-label="Close invoice"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
 
@@ -141,19 +191,27 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
             {/* Left side - Logo and Company */}
             <div className="flex items-center space-x-4 flex-1">
               <div className="flex items-center space-x-3">
-                <img src="/okbikes.jpg" alt="OkBikes Logo" className="h-12 w-12" />
+                <img
+                  src="/src/assets/okloggo.jpeg"
+                  alt="okbike Logo"
+                  className="h-12 w-12"
+                />
                 <div>
-                  <h1 className="text-3xl font-bold tracking-tight">OkBikes</h1>
+                  <h1 className="text-3xl font-bold tracking-tight">okbike</h1>
                   <p className="text-orange-100">Ride with confidence</p>
                 </div>
               </div>
             </div>
-            
+
             {/* Right side - Invoice details with proper margin */}
             <div className="text-right flex-shrink-0 mr-16">
-              <h2 className="text-2xl font-bold tracking-wide uppercase mb-2">Invoice</h2>
+              <h2 className="text-2xl font-bold tracking-wide uppercase mb-2">
+                Invoice
+              </h2>
               <div className="bg-orange-700 px-4 py-2 rounded inline-block">
-                <p className="text-orange-100 font-medium">OKB-{booking?.bookingId}</p>
+                <p className="text-orange-100 font-medium">
+                  OKB-{booking?.bookingId}
+                </p>
               </div>
             </div>
           </div>
@@ -172,22 +230,45 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
           {/* Address and Date Section */}
           <div className="flex justify-between mb-8 gap-6">
             <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
-              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Billed To:</h3>
+              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">
+                Billed To:
+              </h3>
               <p className="text-gray-800 font-medium text-lg">{userName}</p>
               <p className="text-gray-600">{userPhone}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
-              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Payment Details:</h3>
-              <p className="text-gray-600">Payment Mode: <span className="font-medium">{booking?.paymentMethod || "Cash On Center"}</span></p>
-              <p className="text-gray-600">Security Deposit: <span className="font-medium">₹{securityDeposit}</span></p>
+              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">
+                Payment Details:
+              </h3>
+              <p className="text-gray-600">
+                Payment Mode:{" "}
+                <span className="font-medium">
+                  {booking?.paymentMethod || "Cash On Center"}
+                </span>
+              </p>
+              <p className="text-gray-600">
+                Security Deposit:{" "}
+                <span className="font-medium">₹{securityDeposit}</span>
+              </p>
             </div>
           </div>
 
           {/* Booking Details */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
               Booking Summary
             </h3>
@@ -195,41 +276,55 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <p className="text-gray-500 text-sm mb-1">Vehicle Model</p>
-                  <p className="font-medium text-gray-900 text-lg">{vehicleModel}</p>
+                  <p className="font-medium text-gray-900 text-lg">
+                    {vehicleModel}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">Vehicle Number</p>
-                  <p className="font-medium text-gray-900 text-lg">{vehicleNumber || "Not assigned"}</p>
+                  <p className="font-medium text-gray-900 text-lg">
+                    {vehicleNumber || "Not assigned"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Start Date & Time</p>
-                  <p className="font-medium text-gray-900">{new Date(booking?.startDate).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true,
-                  })}</p>
+                  <p className="text-gray-500 text-sm mb-1">
+                    Start Date & Time
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {new Date(booking?.startDate).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">End Date & Time</p>
-                  <p className="font-medium text-gray-900">{new Date(booking?.endDate).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true,
-                  })}</p>
+                  <p className="font-medium text-gray-900">
+                    {new Date(booking?.endDate).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">Duration</p>
-                  <p className="font-medium text-gray-900">{calculateDuration()}</p>
+                  <p className="font-medium text-gray-900">
+                    {calculateDuration()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm mb-1">Package</p>
-                  <p className="font-medium text-gray-900">{booking?.vehiclePackage?.name || "Standard Package"}</p>
+                  <p className="font-medium text-gray-900">
+                    {booking?.vehiclePackage?.name || "Standard Package"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -238,8 +333,19 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
           {/* Charges Breakdown */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
               Charges
             </h3>
@@ -247,63 +353,60 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
               <table className="w-full">
                 <thead className="bg-gray-50 border-b-2 border-gray-200">
                   <tr>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Description</th>
-                    <th className="text-right py-3 px-4 text-gray-700 font-semibold">Amount</th>
+                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">
+                      Description
+                    </th>
+                    <th className="text-right py-3 px-4 text-gray-700 font-semibold">
+                      Amount
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="py-3 px-4 text-gray-700">Package Price ({durationInDays()} day{durationInDays() !== 1 ? 's' : ''})</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">₹{totalPackagePrice.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-gray-700">Package Price</td>
+                    <td className="py-3 px-4 text-gray-700 text-right">
+                      ₹{totalPackagePrice.toFixed(2)}
+                    </td>
                   </tr>
+
                   <tr>
                     <td className="py-3 px-4 text-gray-700">GST (18%)</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">₹{gst.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-gray-700 text-right">
+                      ₹{gst.toFixed(2)}
+                    </td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-gray-700">Convenience Fee</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">₹{convenienceFee.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-gray-700 text-right">
+                      ₹{convenienceFee.toFixed(2)}
+                    </td>
                   </tr>
-                  {booking?.addressType === 'DELIVERY_AT_LOCATION' && (
+                  {booking?.addressType === "DELIVERY_AT_LOCATION" && (
                     <tr className="bg-orange-50">
-                      <td className="py-3 px-4 text-orange-700 font-medium">Delivery Charge</td>
-                      <td className="py-3 px-4 text-orange-700 font-medium text-right">₹{deliveryCharge.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-orange-700 font-medium">
+                        Delivery Charge
+                      </td>
+                      <td className="py-3 px-4 text-orange-700 font-medium text-right">
+                        ₹{deliveryCharge.toFixed(2)}
+                      </td>
                     </tr>
                   )}
-                  {/* {charges.map((charge, index) => (
-                    <tr key={index}>
-                      <td className="py-3 px-4 text-gray-700">{charge.type || charge.description}</td>
-                      <td className="py-3 px-4 text-gray-700 text-right">₹{Number(charge.amount || 0).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                  {lateCharges > 0 && (
-                    <tr className="bg-red-50">
-                      <td className="py-3 px-4 text-red-700 font-medium">Late Charges</td>
-                      <td className="py-3 px-4 text-red-700 font-medium text-right">₹{lateCharges.toFixed(2)}</td>
-                    </tr>
-                  )}
-                  {challans.map((challan, index) => (
-                    <tr key={index} className="bg-orange-50">
-                      <td className="py-3 px-4 text-orange-700">Traffic Challan: {challan.description}</td>
-                      <td className="py-3 px-4 text-orange-700 text-right">₹{Number(challan.amount || 0).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                  {damages.map((damage, index) => (
-                    <tr key={index} className="bg-red-50">
-                      <td className="py-3 px-4 text-red-700">Damage: {damage.description}</td>
-                      <td className="py-3 px-4 text-red-700 text-right">₹{Number(damage.amount || 0).toFixed(2)}</td>
-                    </tr>
-                  ))} */}
                 </tbody>
                 <tfoot className="bg-orange-50">
                   <tr className="border-t-2 border-orange-200">
-                    <td className="py-4 px-4 text-lg font-bold text-orange-900">Total Amount</td>
-                    <td className="py-4 px-4 text-2xl font-bold text-orange-900 text-right">₹{totalAmount.toFixed(2)}</td>
+                    <td className="py-4 px-4 text-lg font-bold text-orange-900">
+                      Total Amount
+                    </td>
+                    <td className="py-4 px-4 text-2xl font-bold text-orange-900 text-right">
+                      ₹{totalAmount.toFixed(2)}
+                    </td>
                   </tr>
                 </tfoot>
               </table>
               <div className="px-4 py-2 bg-gray-50">
-                <p className="font-semibold text-red-600 text-sm">* Note: Deposit is not included in Total Amount</p>
+                <p className="font-semibold text-red-600 text-sm">
+                  * Note: Deposit is not included in Total Amount
+                </p>
               </div>
             </div>
           </div>
@@ -311,38 +414,83 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
           {/* Terms and Conditions */}
           <div className="mb-8 text-sm text-gray-600 border-t border-gray-200 pt-6">
             <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               Terms & Conditions:
             </h4>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Security deposit will be refunded after the bike is returned in good condition.</li>
-              <li>Late returns will incur additional charges as per rental agreement.</li>
+              <li>
+                Security deposit will be refunded after the bike is returned in
+                good condition.
+              </li>
+              <li>
+                Late returns will incur additional charges as per rental
+                agreement.
+              </li>
               <li>Fuel charges are not included in the package price.</li>
-              <li>The renter is responsible for any traffic violations during the rental period.</li>
+              <li>
+                The renter is responsible for any traffic violations during the
+                rental period.
+              </li>
               <li>Damages to the vehicle will be charged as per assessment.</li>
-              {booking?.addressType === 'DELIVERY_AT_LOCATION' && (
-                <li>Delivery charge of ₹250 applies for location-based delivery service.</li>
+              {booking?.addressType === "DELIVERY_AT_LOCATION" && (
+                <li>
+                  Delivery charge of ₹250 applies for location-based delivery
+                  service.
+                </li>
               )}
             </ul>
           </div>
 
           {/* Footer */}
           <div className="text-center text-sm text-gray-600 mt-8 border-t border-gray-200 pt-6">
-            <p className="font-medium">Thank you for choosing OkBikes!</p>
+            <p className="font-medium">Thank you for choosing okbike!</p>
             <div className="flex justify-center items-center mt-2 space-x-4">
               <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2h10a2 2 0 002 2z" />
+                <svg
+                  className="w-4 h-4 mr-1 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
                 </svg>
-                <span>support@okbikes.com</span>
+                <span>okloadexpress11@gmail.com</span>
               </div>
               <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                <svg
+                  className="w-4 h-4 mr-1 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  />
                 </svg>
-                <span>+91 1234567890</span>
+                <span>+91 7767060670/ +91 9112412191</span>
               </div>
             </div>
           </div>
@@ -350,15 +498,29 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
       </div>
 
       {/* Action Buttons (Bottom) */}
-      <div id="action-buttons" className="bg-gray-50 px-8 py-4 rounded-b-lg border-t border-gray-200 print:hidden">
+      <div
+        id="action-buttons"
+        className="bg-gray-50 px-8 py-4 rounded-b-lg border-t border-gray-200 print:hidden"
+      >
         <div className="flex justify-between">
           <div className="flex space-x-2">
             <button
               className="px-6 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300 flex items-center justify-center shadow-md"
               onClick={handleDownload}
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
               Download Invoice
             </button>
@@ -367,8 +529,19 @@ const Invoice = ({ booking, charges = [], lateCharges = 0, challans = [], damage
             className="px-6 py-2.5 bg-orange-800 text-white rounded-md hover:bg-orange-700 transition duration-300 flex items-center justify-center shadow-md"
             onClick={() => window.print()}
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              />
             </svg>
             Print Invoice
           </button>

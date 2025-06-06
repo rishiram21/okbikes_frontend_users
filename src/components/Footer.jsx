@@ -1,5 +1,10 @@
 import React from "react";
-import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import {
+  FaFacebookF,
+  FaYoutube,
+  FaInstagram,
+  FaLinkedinIn,
+} from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -11,8 +16,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-3">About Us</h3>
             <p className="text-sm leading-6">
-              We provide the best bike rental service, ensuring a smooth and adventurous ride experience.
-              Your safety and comfort are our priority!
+              We provide the best bike rental service, ensuring a smooth and
+              adventurous ride experience. Your safety and comfort are our
+              priority!
             </p>
           </div>
 
@@ -47,9 +53,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-3">Contact Info</h3>
             <ul className="space-y-2">
-              <li className="text-sm">📍 Bavdhan, Pune, India</li>
-              <li className="text-sm">📞 +91 1234567890</li>
-              <li className="text-sm">✉️ okbikes@gmail.com</li>
+              <li className="text-sm">📍 Koregaon Park, Pune, India</li>
+              <li className="text-sm">📞 +91 7767060670/ +91 9112412191</li>
+              <li className="text-sm">✉️ okloadexpress11@gmail.com</li>
             </ul>
           </div>
 
@@ -61,7 +67,7 @@ const Footer = () => {
                 <FaFacebookF size={20} />
               </a>
               <a href="#" className="hover:text-gray-400">
-                <FaTwitter size={20} />
+                <FaYoutube size={20} />
               </a>
               <a href="#" className="hover:text-gray-400">
                 <FaInstagram size={20} />
@@ -76,11 +82,13 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-gray-700 mt-8 pt-4 text-center">
           <p className="text-sm">
-            © {new Date().getFullYear()} Bike Rental Service. All Rights Reserved.
+            © {new Date().getFullYear()} Bike Rental Service. All Rights
+            Reserved.
           </p>
           <p className="text-xs mt-1">
             Designed for bike enthusiasts who love adventure.
           </p>
+          <p className="text-xs mt-1">Designed by Eptiq Technologies</p>
         </div>
       </div>
     </footer>

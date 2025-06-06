@@ -16,22 +16,19 @@ const HomePage = () => {
   const { formData, setFormData } = useGlobalState();
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
-  const [selectedCityImage, setSelectedCityImage] = useState(
-    "/banner-freedom.jpg"  
-  );
+  const [selectedCityImage, setSelectedCityImage] =
+    useState("/banner-ritz.jpg");
   const [cities, setCities] = useState([]);
   const [availableBikes, setAvailableBikes] = useState([]);
   const [lastFetchError, setLastFetchError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [animationState, setAnimationState] = useState({
     searchBtn: false,
-    citySelection: false
+    citySelection: false,
   });
 
-  // In-memory cache to avoid sessionStorage limitations
   const bikeCache = React.useRef(new Map());
 
-  // Improved time handling function
   const formatDateForInput = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -48,32 +45,31 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    // Scroll to the top of the page when the component mounts
     window.scrollTo(0, 0);
 
-    // Reset location to null when the page loads
     setFormData((prevData) => ({
       ...prevData,
       location: null,
-      cityId: null
+      cityId: null,
     }));
 
-    // Start loading animation
     const loadSequence = () => {
       setTimeout(() => {
-        const mainBanner = document.querySelector('.main-banner');
-        if (mainBanner) mainBanner.classList.add('active');
+        const mainBanner = document.querySelector(".main-banner");
+        if (mainBanner) mainBanner.classList.add("active");
 
         setTimeout(() => {
-          const bookingForm = document.querySelector('.booking-form');
-          if (bookingForm) bookingForm.classList.add('active');
+          const bookingForm = document.querySelector(".booking-form");
+          if (bookingForm) bookingForm.classList.add("active");
 
           setTimeout(() => {
-            document.querySelectorAll('.feature-item').forEach((item, index) => {
-              setTimeout(() => {
-                item.classList.add('active');
-              }, index * 100);
-            });
+            document
+              .querySelectorAll(".feature-item")
+              .forEach((item, index) => {
+                setTimeout(() => {
+                  item.classList.add("active");
+                }, index * 100);
+              });
           }, 300);
         }, 200);
       }, 100);
@@ -83,12 +79,15 @@ const HomePage = () => {
 
     const fetchCities = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/city/all`, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/city/all`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
 
         const citiesData = response.data?.content || [];
         setCities(citiesData);
@@ -101,7 +100,6 @@ const HomePage = () => {
     fetchCities();
   }, [setFormData]);
 
-  // Set default dates on initial load
   useEffect(() => {
     const currentDate = new Date();
     const roundedStartDate = roundToNextHour(currentDate);
@@ -115,7 +113,6 @@ const HomePage = () => {
     }));
   }, [setFormData]);
 
-  // Optimize bike fetching with debounce and memory caching
   const fetchAvailableBikes = async (immediate = false) => {
     if (!formData.location || !formData.startDate || !formData.endDate) {
       setErrors({ location: "Please Select City and dates." });
@@ -129,7 +126,6 @@ const HomePage = () => {
 
     const cacheKey = `bikes_${formData.cityId}_${formData.startDate}_${formData.endDate}`;
 
-    // Check in-memory cache first
     if (bikeCache.current.has(cacheKey) && !immediate) {
       const cachedData = bikeCache.current.get(cacheKey);
       setAvailableBikes(cachedData);
@@ -137,12 +133,14 @@ const HomePage = () => {
       return cachedData;
     }
 
-    const startTime = new Date(formData.startDate).toISOString()
-      .replace('T', ' ')
-      .split('.')[0];
-    const endTime = new Date(formData.endDate).toISOString()
-      .replace('T', ' ')
-      .split('.')[0];
+    const startTime = new Date(formData.startDate)
+      .toISOString()
+      .replace("T", " ")
+      .split(".")[0];
+    const endTime = new Date(formData.endDate)
+      .toISOString()
+      .replace("T", " ")
+      .split(".")[0];
 
     const params = {
       cityId: formData.cityId,
@@ -157,18 +155,11 @@ const HomePage = () => {
       );
       const bikesData = response.data?.content || [];
 
-      // Store in memory cache instead of sessionStorage
-      try {
-        // Implement cache size management - keep only the 10 most recent queries
-        if (bikeCache.current.size >= 10) {
-          // Get the oldest key (first inserted)
-          const oldestKey = bikeCache.current.keys().next().value;
-          bikeCache.current.delete(oldestKey);
-        }
-        bikeCache.current.set(cacheKey, bikesData);
-      } catch (e) {
-        console.error("Failed to cache bikes data:", e);
+      if (bikeCache.current.size >= 10) {
+        const oldestKey = bikeCache.current.keys().next().value;
+        bikeCache.current.delete(oldestKey);
       }
+      bikeCache.current.set(cacheKey, bikesData);
 
       if (bikesData.length === 0) {
         setErrors({
@@ -192,14 +183,12 @@ const HomePage = () => {
     }
   };
 
-  // Background prefetching of bike data with improved throttling
   useEffect(() => {
     let timeoutId;
     if (formData.location && formData.startDate && formData.endDate) {
-      // Increase debounce time to reduce unnecessary requests
       timeoutId = setTimeout(() => {
-        fetchAvailableBikes(true); // true means it's a background fetch
-      }, 500); // Increased from 300ms to 500ms for better throttling
+        fetchAvailableBikes(true);
+      }, 500);
     }
 
     return () => {
@@ -210,59 +199,57 @@ const HomePage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Time validation for start date
-    if (name === 'startDate') {
+    if (name === "startDate") {
       const selectedDate = new Date(value);
       const currentDate = new Date();
 
       if (selectedDate < currentDate) {
-        // If selected date is in the past, set to current date and time
         setFormData((prevData) => ({
           ...prevData,
-          [name]: formatDateForInput(roundToNextHour(currentDate))
+          [name]: formatDateForInput(roundToNextHour(currentDate)),
         }));
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: "Past dates and times cannot be selected. Date and time have been reset to current time."
+          [name]:
+            "Past dates and times cannot be selected. Date and time have been reset to current time.",
         }));
         return;
       }
 
-      // If endDate is before the new startDate, update endDate
       if (formData.endDate && new Date(formData.endDate) < new Date(value)) {
         const newEndDate = new Date(value);
         newEndDate.setDate(newEndDate.getDate() + 1);
-        // Preserve the time of the new start date
-        newEndDate.setHours(new Date(value).getHours(),
-                             new Date(value).getMinutes());
+        newEndDate.setHours(
+          new Date(value).getHours(),
+          new Date(value).getMinutes()
+        );
 
         setFormData((prevData) => ({
           ...prevData,
           [name]: value,
-          endDate: formatDateForInput(newEndDate)
+          endDate: formatDateForInput(newEndDate),
         }));
         return;
       }
     }
 
-    // Time validation for end date
-    if (name === 'endDate') {
+    if (name === "endDate") {
       const startDate = new Date(formData.startDate);
       const selectedEndDate = new Date(value);
 
       if (selectedEndDate <= startDate) {
         const newEndDate = new Date(startDate);
         newEndDate.setDate(startDate.getDate() + 1);
-        // Preserve the time of the start date
         newEndDate.setHours(startDate.getHours(), startDate.getMinutes());
 
         setFormData((prevData) => ({
           ...prevData,
-          [name]: formatDateForInput(newEndDate)
+          [name]: formatDateForInput(newEndDate),
         }));
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: "End date and time must be after start date and time. Date and time have been adjusted."
+          [name]:
+            "End date and time must be after start date and time. Date and time have been adjusted.",
         }));
         return;
       }
@@ -273,72 +260,64 @@ const HomePage = () => {
   };
 
   const handleCitySelection = (city) => {
-    // Add animation for selection
-    setAnimationState(prev => ({...prev, citySelection: true}));
+    setAnimationState((prev) => ({ ...prev, citySelection: true }));
 
     setFormData((prevData) => ({
       ...prevData,
-      location: city.name, // Set the location to the selected city's name
+      location: city.name,
       cityId: city.id,
     }));
 
-    // Smooth image transition
-    const fadeOut = document.querySelector('.city-image-container');
+    const fadeOut = document.querySelector(".city-image-container");
     if (fadeOut) {
-      fadeOut.classList.add('fade-out');
+      fadeOut.classList.add("fade-out");
 
       setTimeout(() => {
         setSelectedCityImage(`data:image/jpeg;base64,${city.image}`);
-        fadeOut.classList.remove('fade-out');
-        fadeOut.classList.add('fade-in');
+        fadeOut.classList.remove("fade-out");
+        fadeOut.classList.add("fade-in");
 
         setTimeout(() => {
-          fadeOut.classList.remove('fade-in');
-          setAnimationState(prev => ({...prev, citySelection: false}));
+          fadeOut.classList.remove("fade-in");
+          setAnimationState((prev) => ({ ...prev, citySelection: false }));
         }, 300);
       }, 300);
     } else {
       setSelectedCityImage(`data:image/jpeg;base64,${city.image}`);
-      setAnimationState(prev => ({...prev, citySelection: false}));
+      setAnimationState((prev) => ({ ...prev, citySelection: false }));
     }
   };
 
   const handleSearch = async () => {
-    // Add button animation
-    setAnimationState(prev => ({...prev, searchBtn: true}));
+    setAnimationState((prev) => ({ ...prev, searchBtn: true }));
 
     if (!formData.location) {
       setErrors({ location: "Please Select City." });
-      setAnimationState(prev => ({...prev, searchBtn: false}));
+      setAnimationState((prev) => ({ ...prev, searchBtn: false }));
       return;
     }
 
     try {
-      // Navigate immediately if bikes are already loaded
       if (availableBikes.length > 0) {
         navigate("/bike-list", { state: { formData } });
-        setTimeout(() => {
-        }, 100);
-
+        setTimeout(() => {}, 100);
         return;
       }
 
-      // If not loaded, fetch bikes with fast response
       const bikes = await fetchAvailableBikes();
 
       if (bikes.length > 0) {
         navigate("/bike-list", { state: { formData } });
-        setTimeout(() => {
-        }, 100);
+        setTimeout(() => {}, 100);
       } else if (lastFetchError) {
         setErrors({ location: lastFetchError });
-        setAnimationState(prev => ({...prev, searchBtn: false}));
+        setAnimationState((prev) => ({ ...prev, searchBtn: false }));
       } else {
-        setAnimationState(prev => ({...prev, searchBtn: false}));
+        setAnimationState((prev) => ({ ...prev, searchBtn: false }));
       }
     } catch (error) {
       console.error("Navigation error:", error);
-      setAnimationState(prev => ({...prev, searchBtn: false}));
+      setAnimationState((prev) => ({ ...prev, searchBtn: false }));
     }
   };
 
@@ -350,66 +329,65 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-      {/* Hero Section - Ultra Responsive for all devices */}
       <div className="flex flex-col xl:flex-row h-screen">
-        {/* Image Section - 40% height on mobile, 50% width on desktop */}
         <div
           className="w-full xl:w-1/2 h-2/5 xl:h-full bg-cover bg-center main-banner city-image-container relative"
           style={{
             backgroundImage: `url('${selectedCityImage}')`,
-            transition: 'opacity 0.3s ease-in-out',
-            backgroundPosition: window.innerWidth < 768 ? 'center 30%' : 'center center',
+            transition: "opacity 0.3s ease-in-out",
+            backgroundPosition:
+              window.innerWidth < 768 ? "center 30%" : "center center",
           }}
         >
-          {/* Overlay for better text readability on mobile */}
           <div className="absolute inset-0 bg-black bg-opacity-20 xl:hidden"></div>
         </div>
 
-        {/* Form Section - 60% height on mobile, no spacing */}
-        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-500 to-orange-500 slide-in-right">
+        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-[#ec5a05] to-[#ec5a05] slide-in-right">
           <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white mb-4 xl:mb-6 animate-pulse-once text-center leading-tight">
-            Welcome to OkBikes
+            Welcome to OkBike
           </h1>
-          
-          <div className="bg-white p-4 xl:p-8 shadow-lg w-full max-w-sm xl:max-w-md booking-form rounded-lg">
-            {/* Location Field */}
-            <div className="mb-3 xl:mb-4">
+
+          <div className="bg-white p-8 xl:p-12 shadow-lg w-full max-w-xl booking-form rounded-lg">
+            <div className="mb-4 xl:mb-5">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-[#ec5a05] font-medium mb-2 text-lg"
                 htmlFor="location"
               >
                 Select City
               </label>
-              <select
-                id="location"
-                name="location"
-                value={formData.location || ""}
-                onChange={(e) => {
-                  const selectedCity = cities.find(city => city.name === e.target.value);
-                  if (selectedCity) {
-                    handleCitySelection(selectedCity);
-                  }
-                }}
-                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-900 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
-                  errors.location ? "border-red-500" : "border-gray-300"
-                }`}
-              >
-                <option value="">Select City</option>
-                {cities.map((city, index) => (
-                  <option key={index} value={city.name}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-              {errors.location && (
-                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.location}</p>
-              )}
+              <div className="relative">
+                <select
+                  id="location"
+                  name="location"
+                  value={formData.location || ""}
+                  onChange={(e) => {
+                    const selectedCity = cities.find(
+                      (city) => city.name === e.target.value
+                    );
+                    if (selectedCity) {
+                      handleCitySelection(selectedCity);
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border outline-none focus:ring-2 focus:ring-[#ec5a05] hover:shadow-md transition-all duration-300 rounded-md text-lg ${
+                    errors.location ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <option value="">Select City</option>
+                  {cities.map((city, index) => (
+                    <option key={index} value={city.name}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.location && (
+                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                )}
+              </div>
             </div>
 
-            {/* Start Date Field */}
-            <div className="mb-3 xl:mb-4">
+            <div className="mb-4 xl:mb-5">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-orange-600 font-medium mb-2 text-lg"
                 htmlFor="startDate"
               >
                 Start Date & Time
@@ -421,19 +399,18 @@ const HomePage = () => {
                 value={formData.startDate}
                 min={formatDateForInput(new Date())}
                 onChange={handleInputChange}
-                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
+                className={`w-full px-4 py-3 border outline-none focus:ring-2 focus:ring-[#ec5a05] hover:shadow-md transition-all duration-300 rounded-md text-lg ${
                   errors.startDate ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.startDate && (
-                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.startDate}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>
               )}
             </div>
 
-            {/* End Date Field */}
-            <div className="mb-4 xl:mb-6">
+            <div className="mb-6 xl:mb-8">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-orange-600 font-medium mb-2 text-lg"
                 htmlFor="endDate"
               >
                 End Date & Time
@@ -445,87 +422,94 @@ const HomePage = () => {
                 value={formData.endDate}
                 min={formData.startDate}
                 onChange={handleInputChange}
-                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-500 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
+                className={`w-full px-4 py-3 border outline-none focus:ring-2 focus:ring-[#ec5a05] hover:shadow-md transition-all duration-300 rounded-md text-lg ${
                   errors.endDate ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.endDate && (
-                <p className="text-red-500 text-sm xl:text-sm mt-1">{errors.endDate}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>
               )}
             </div>
 
-            {/* Submit Button */}
             <button
               onClick={handleSearch}
               disabled={isLoading || animationState.searchBtn}
-              className={`w-full bg-orange-800 text-white rounded-full py-3 xl:py-2 px-4 xl:px-4 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 active:scale-95 text-base xl:text-base font-medium ${
-                animationState.searchBtn ? 'animate-pulse' : ''
+              className={`w-full bg-[#ec5a05] text-white rounded-full py-3 px-6 hover:bg-[#d65405] transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg font-medium ${
+                animationState.searchBtn ? "animate-pulse" : ""
               }`}
             >
-              {isLoading ? 'Loading...' : 'Book Now'}
+              {isLoading ? "Loading..." : "Book Now"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Why Choose OkBikes Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-[#ec5a05] py-10 sm:py-12 md:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-bounce-once">
-            Why Choose OkBikes
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-center text-gray-800 mb-8 animate-bounce-once">
+            Why Choose OkBike
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-7 lg:gap-8">
             {[
               {
-                icon: <FaBicycle className="text-orange-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
+                icon: (
+                  <FaBicycle className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
+                ),
                 text: "Wide range of bikes.",
               },
               {
-                icon: <FaHandshake className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
+                icon: (
+                  <FaHandshake className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
+                ),
                 text: "Affordable pricing.",
               },
               {
-                icon: <FaPhone className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
+                icon: (
+                  <FaPhone className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
+                ),
                 text: "24/7 customer support.",
               },
               {
-                icon: <FaCheck className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />,
+                icon: (
+                  <FaCheck className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
+                ),
                 text: "Easy booking process.",
               },
               {
                 icon: (
-                  <FaMapMarkerAlt className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />
+                  <FaMapMarkerAlt className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
                 ),
                 text: "Multiple locations.",
               },
               {
                 icon: (
-                  <FaCreditCard className="text-orange-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4" />
+                  <FaCreditCard className="text-[#ec5a05] text-4xl sm:text-5xl md:text-6xl mb-4" />
                 ),
                 text: "Secure payment.",
               },
             ].map((reason, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center bg-white p-4 sm:p-5 md:p-6 lg:p-8 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 feature-item rounded-lg"
+                className="flex flex-col items-center text-center bg-white p-5 sm:p-6 md:p-7 lg:p-8 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 feature-item rounded-lg"
               >
                 <div className="transform transition-transform duration-500 hover:rotate-12 hover:scale-110">
                   {reason.icon}
                 </div>
-                <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl">{reason.text}</p>
+                <p className="text-gray-800 font-medium text-base sm:text-lg md:text-xl">
+                  {reason.text}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* How to Book a Bike Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-[#ec5a05] py-10 sm:py-12 md:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-pulse-once">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-center text-gray-800 mb-8 animate-pulse-once">
             How to Book a Bike
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-7 lg:gap-8">
             {[
               {
                 step: "Step 1",
@@ -566,43 +550,44 @@ const HomePage = () => {
             ].map((step, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center bg-gray-50 p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:scale-105 animate-slide-in-from-bottom rounded-lg"
+                className="flex flex-col items-center text-center bg-gray-50 p-5 sm:p-6 md:p-7 lg:p-8 shadow-lg transform transition-all duration-300 hover:shadow-xl hover:scale-105 animate-slide-in-from-bottom rounded-lg"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="text-orange-500 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold mb-2">
+                <div className="text-[#ec5a05] text-xl sm:text-2xl md:text-3xl font-semibold mb-3">
                   {step.step}
                 </div>
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-800 mb-2">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-3">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">{step.description}</p>
+                <p className="text-gray-600 text-base sm:text-lg md:text-xl leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Our Presence Section - Responsive grid */}
-      <div className="py-10 lg:py-16 bg-gradient-to-r from-orange-500 to-orange-400">
+      <div className="py-10 lg:py-16 bg-[#ec5a05]">
         <div className="max-w-7xl mx-auto px-4 lg:px-6">
-          <h2 className="text-2xl lg:text-3xl font-bold text-center text-black mb-6 lg:mb-8 animate-float">
+          <h2 className="text-2xl lg:text-3xl font-bold text-center text-white mb-8 animate-float">
             Our Presence
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-6">
+          <div className="flex justify-center flex-wrap gap-4">
             {cities.map((city, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center text-center hover:bg-white hover:bg-opacity-20 p-2 lg:p-3 rounded-lg transition-all duration-300 transform hover:scale-105 animate-fade-in"
+                className="flex flex-col items-center text-center hover:bg-white hover:bg-opacity-20 p-3 rounded-lg transition-all duration-300 transform hover:scale-105 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="w-16 h-16 lg:w-20 lg:h-20 overflow-hidden rounded-full mb-2 lg:mb-4 border-2 border-white transition-all duration-300 hover:border-orange-300">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 overflow-hidden rounded-full mb-3 border-2 border-white transition-all duration-300 hover:border-[#ec5a05]">
                   <img
                     src={`data:image/jpeg;base64,${city.image}`}
                     alt={city.name}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                   />
                 </div>
-                <p className="text-black font-medium text-sm lg:text-base">{city.name}</p>
+                <p className="text-black font-medium text-base">{city.name}</p>
               </div>
             ))}
           </div>

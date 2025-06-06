@@ -24,15 +24,14 @@ const LoginPopup = ({ onClose, openRegistration }) => {
     setTimeout(() => setAlertMessage(null), 3000);
   };
 
-
   const { token } = useAuth();
   const { checkToken } = useAuth();
 
-// For debugging:
+  // For debugging:
   const tokenStatus = checkToken();
   console.log("Token status:", tokenStatus);
   
-   // Log the token when the component mounts and whenever it changes
+  // Log the token when the component mounts and whenever it changes
   useEffect(() => {
     console.log("Token from AuthContext:", token);
     
@@ -43,49 +42,66 @@ const LoginPopup = ({ onClose, openRegistration }) => {
     }
   }, [token]);
 
-
   const sendOTP = async () => {
-  if (mobile.length !== 10) {
-    setError("Enter a valid 10-digit mobile number.");
-    return;
-  }
-
-  setLoading(true);
-  setError("");
-
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      if (data.message === "User not found" || data.message === "Invalid mobile number") {
-        // Redirect to registration if the user is not found or the number is invalid
-        onClose();
-        openRegistration();
-      }
-      throw new Error(data.message || "Failed to send OTP.");
+    if (mobile.length !== 10) {
+      setError("Enter a valid 10-digit mobile number.");
+      return;
     }
 
-    setOtpSent(true);
-    showAlert("OTP sent successfully!");
+    setLoading(true);
+    setError("");
 
-    // Focus on OTP input after a short delay to allow rendering
-    setTimeout(() => {
-      if (otpInputRef.current) {
-        otpInputRef.current.focus();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Check for user not found or invalid mobile number scenarios
+        if (
+          response.status === 404 || 
+          data.message === "User not found" || 
+          data.message === "Invalid mobile number" ||
+          data.message === "Mobile number not registered" ||
+          data.message === "Phone number not found" ||
+          data.message?.toLowerCase().includes("not found") ||
+          data.message?.toLowerCase().includes("not registered")
+        ) {
+          // Show user-friendly message before redirecting
+          setError("Mobile number not registered. Redirecting to registration...");
+          
+          // Redirect to registration after a short delay
+          setTimeout(() => {
+            onClose();
+            openRegistration();
+          }, 2000);
+          
+          return; // Exit early to prevent further execution
+        }
+        
+        // For other errors, throw normally
+        throw new Error(data.message || "Failed to send OTP.");
       }
-    }, 100);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
 
+      setOtpSent(true);
+      showAlert("OTP sent successfully!");
+
+      // Focus on OTP input after a short delay to allow rendering
+      setTimeout(() => {
+        if (otpInputRef.current) {
+          otpInputRef.current.focus();
+        }
+      }, 100);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const verifyOTP = async () => {
     if (otp.length !== 4) {
@@ -125,7 +141,6 @@ const LoginPopup = ({ onClose, openRegistration }) => {
       setLoading(false);
     }
   };
-
 
   // Handle key press events for both inputs
   const handleKeyPress = (e, action) => {
@@ -318,7 +333,15 @@ const LoginPopup = ({ onClose, openRegistration }) => {
           <>
             <h2 className="text-xl font-bold mb-4">Login</h2>
 
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            {error && (
+              <p className={`text-sm mb-4 ${
+                error.includes("Redirecting to registration") 
+                  ? "text-orange-600 bg-orange-50 p-2 rounded border-l-4 border-orange-400" 
+                  : "text-red-500"
+              }`}>
+                {error}
+              </p>
+            )}
 
             <input
               type="tel"
@@ -367,16 +390,16 @@ const LoginPopup = ({ onClose, openRegistration }) => {
                 </button>
 
                 <div className="text-center mt-2">
-                    <button
-                      onClick={handleResendOTP}
-                      disabled={loading}
-                      className={`text-blue-500 underline text-sm ${
-                        loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                      }`}
-                    >
-                      Resend OTP
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleResendOTP}
+                    disabled={loading}
+                    className={`text-blue-500 underline text-sm ${
+                      loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
+                  >
+                    Resend OTP
+                  </button>
+                </div>
               </>
             )}
 
