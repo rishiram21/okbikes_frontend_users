@@ -325,7 +325,7 @@ const BikeListPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 relative min-h-screen mt-14">
+    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 relative min-h-screen mt-20">
       {/* Filter toggle button for mobile */}
       <button
         onClick={() => setShowFilters(!showFilters)}

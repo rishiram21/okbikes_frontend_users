@@ -276,7 +276,7 @@ const BikeDetailsPage = () => {
       initial={{ opacity: 0 }} // Changed initial opacity to 0 for a fade-in effect on page load
       animate={{ opacity: isAnimating ? 0 : 1 }}
       transition={{ duration: 0.6 }}
-      className="container mx-auto py-6 px-4 md:px-6 lg:px-8 mt-12 relative min-h-screen" // Added min-h-screen for better layout
+      className="container mx-auto py-6 px-4 md:px-6 lg:px-8 mt-20 relative min-h-screen" // Added min-h-screen for better layout
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {" "}

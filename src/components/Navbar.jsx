@@ -450,7 +450,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-1">
               <img
-                src="/src/assets/okloggo.jpeg"
+                src="/okloggo.jpeg"
                 alt="OkBikes Logo"
                 className="h-16 w-30 object-contain"
               />

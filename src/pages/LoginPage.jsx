@@ -30,6 +30,8 @@ const LoginPage = () => {
     }
   }, [token]);
 
+
+
   // Add refs for input fields
   const mobileInputRef = useRef(null);
   const otpInputRef = useRef(null);
@@ -57,32 +59,8 @@ const LoginPage = () => {
         body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        // Check if the error indicates user is not registered
-        if (response.status === 404 || 
-            data.message?.toLowerCase().includes('user not found') ||
-            data.message?.toLowerCase().includes('not registered') ||
-            data.message?.toLowerCase().includes('does not exist')) {
-          
-          // Show a brief message before redirecting
-          showAlert("User not registered. Redirecting to registration...");
-          
-          // Redirect to register page after a short delay
-          setTimeout(() => {
-            navigate("/register", { 
-              state: { 
-                phoneNumber: mobile,
-                message: "Please complete registration to continue" 
-              } 
-            });
-          }, 1500);
-          
-          return;
-        }
-        
-        throw new Error(data.message || "Failed to send OTP.");
+        throw new Error("Failed to send OTP.");
       }
 
       setOtpSent(true);

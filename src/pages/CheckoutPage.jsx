@@ -462,7 +462,7 @@ const CheckoutPage = () => {
 
   return (
     <motion.div
-      className="flex flex-col min-h-screen bg-gray-100 pt-16 pb-8"
+      className="flex flex-col min-h-screen bg-gray-100 pt-16 pb-8 mt-2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
