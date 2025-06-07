@@ -118,7 +118,7 @@ const ContactUs = () => {
                 </div>
                 <div>
                   <p className="text-orange-200 text-sm">Phone</p>
-                  <p className="font-medium">+91 1234567890</p>
+                  <p className="font-medium">+91 7767060670 /<br /> +91 9112412191</p>
                 </div>
               </div>
               
@@ -128,7 +128,7 @@ const ContactUs = () => {
                 </div>
                 <div>
                   <p className="text-orange-200 text-sm">Email</p>
-                  <p className="font-medium">okbikes@gmail.com</p>
+                  <p className="font-medium">okloadexpress11@gmail.com</p>
                 </div>
               </div>
               
@@ -138,8 +138,8 @@ const ContactUs = () => {
                 </div>
                 <div>
                   <p className="text-orange-200 text-sm">Address</p>
-                  <p className="font-medium">AK Enterprises, Ashok Nagar rd</p>
-                  <p className="font-medium">Ashok Nagar, Tathwade - 411033</p>
+                  <p className="font-medium">Koregaon Park, Pune, India</p>
+                  {/* <p className="font-medium">Ashok Nagar, Tathwade - 411033</p> */}
                 </div>
               </div>
             </div>

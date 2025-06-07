@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Invoice from "./Invoice"; // Import the Invoice component
-import { FaSpinner, FaArrowLeft, FaFileInvoice, FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaSpinner,
+  FaArrowLeft,
+  FaFileInvoice,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 const InvoicePage = () => {
   const { bookingId } = useParams();
@@ -15,7 +20,9 @@ const InvoicePage = () => {
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
       try {
-        const token = localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+        const token =
+          localStorage.getItem("jwtToken") ||
+          sessionStorage.getItem("jwtToken");
 
         if (!token) {
           setError("User not authenticated. Please log in.");
@@ -23,11 +30,14 @@ const InvoicePage = () => {
         }
 
         // Fetch combined details for the order
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/booking/combined/${bookingId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/booking/combined/${bookingId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const bookingDto = response.data;
 
@@ -39,9 +49,12 @@ const InvoicePage = () => {
           vehicleNumber: bookingDto.vehicle.vehicleRegistrationNumber,
           vehicleModel: bookingDto.vehicle.model,
           charges: [
-            { type: 'Damage', amount: bookingDto.booking.damage || 0 },
-            { type: 'Challan', amount: bookingDto.booking.challan || 0 },
-            { type: 'Additional', amount: bookingDto.booking.additionalCharges || 0 },
+            { type: "Damage", amount: bookingDto.booking.damage || 0 },
+            { type: "Challan", amount: bookingDto.booking.challan || 0 },
+            {
+              type: "Additional",
+              amount: bookingDto.booking.additionalCharges || 0,
+            },
           ],
           challans: bookingDto.booking.challans || [],
           damages: bookingDto.booking.damages || [],
@@ -79,8 +92,14 @@ const InvoicePage = () => {
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <img src="/okbikes.jpg" alt="OkBikes Logo" className="h-8 w-8" />
-                <h1 className="text-2xl font-bold text-white tracking-tight">OkBikes</h1>
+                <img
+                  src="/src/assets/okloggo.jpeg"
+                  alt="okbike Logo"
+                  className="h-8 w-8"
+                />
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  OkBike
+                </h1>
               </div>
               <div className="text-white">
                 <span className="text-lg font-medium">Invoice Center</span>
@@ -102,10 +121,16 @@ const InvoicePage = () => {
                     <FaFileInvoice className="text-white text-sm" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Generating Invoice</h2>
-                <p className="text-gray-600 mb-6">Please wait while we fetch your booking details...</p>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                  Generating Invoice
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Please wait while we fetch your booking details...
+                </p>
                 <div className="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-600">
-                  <p className="text-orange-800 font-medium">Booking ID: OKB-{bookingId}</p>
+                  <p className="text-orange-800 font-medium">
+                    Booking ID: OKB-{bookingId}
+                  </p>
                 </div>
               </div>
             </div>
@@ -123,8 +148,14 @@ const InvoicePage = () => {
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <img src="/okbikes.jpg" alt="OkBikes Logo" className="h-8 w-8" />
-                <h1 className="text-2xl font-bold text-white tracking-tight">OkBikes</h1>
+                <img
+                  src="/src/assets/okloggo.jpeg"
+                  alt="okbike Logo"
+                  className="h-8 w-8"
+                />
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  OkBike
+                </h1>
               </div>
               <button
                 onClick={handleGoBack}
@@ -147,18 +178,32 @@ const InvoicePage = () => {
                     <FaExclamationTriangle className="text-red-600 text-4xl" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Unable to Load Invoice</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                  Unable to Load Invoice
+                </h2>
                 <p className="text-red-600 mb-6 font-medium">{error}</p>
                 <div className="bg-red-50 rounded-lg p-4 border-l-4 border-red-600 mb-8">
-                  <p className="text-red-800 font-medium">Booking ID: OKB-{bookingId}</p>
+                  <p className="text-red-800 font-medium">
+                    Booking ID: OKB-{bookingId}
+                  </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
                     onClick={() => window.location.reload()}
                     className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center justify-center"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                     Try Again
                   </button>
@@ -185,8 +230,10 @@ const InvoicePage = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <img src="/okbikes.jpg" alt="okbikes Logo" className="h-8 w-8" />
-              <h1 className="text-2xl font-bold text-white tracking-tight">OkBikes</h1>
+              <img src="/bikes/okloggo.jpeg" alt="okbike Logo" className="h-8 w-8" />
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                OkBike
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-white text-right">
@@ -215,8 +262,18 @@ const InvoicePage = () => {
             >
               Orders
             </button>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
             <span className="text-gray-900 font-medium">Invoice</span>
           </nav>
@@ -235,19 +292,22 @@ const InvoicePage = () => {
                     <FaFileInvoice className="text-orange-600 text-xl" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Invoice Generated</h2>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Invoice Generated
+                    </h2>
                     <p className="text-gray-600">
-                      For {invoiceDetails.userName} • {invoiceDetails.vehicleModel}
+                      For {invoiceDetails.userName} •{" "}
+                      {invoiceDetails.vehicleModel}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Generated on</p>
                   <p className="font-medium text-gray-900">
-                    {new Date().toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
+                    {new Date().toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
                     })}
                   </p>
                 </div>

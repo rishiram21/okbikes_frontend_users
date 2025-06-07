@@ -450,9 +450,9 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-1">
               <img
-                src="/okbikes.jpg"
+                src="/okloggo.jpeg"
                 alt="OkBikes Logo"
-                className="h-10 w-30 object-contain"
+                className="h-10 w-20 object-contain"
               />
             </Link>
           </div>

@@ -615,7 +615,7 @@ const OrdersPage = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 bg-gray-50 relative">
+    <div className="min-h-screen pt-24 pb-12 px-4 bg-gray-50 relative mt-8">
       <ToastContainer />
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">My Orders</h1>
