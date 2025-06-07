@@ -47,7 +47,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-3">Contact Info</h3>
             <ul className="space-y-2">
-              <li className="text-sm">📍 Bavdhan, Pune, India</li>
+              <li className="text-sm">📍 Koregaon Park, Pune, India</li>
               <li className="text-sm">📞 +91 1234567890</li>
               <li className="text-sm">✉️ okbikes@gmail.com</li>
             </ul>

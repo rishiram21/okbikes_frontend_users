@@ -17,7 +17,7 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedCityImage, setSelectedCityImage] = useState(
-    "/banner-freedom.jpg"  
+    "/banner.png"  
   );
   const [cities, setCities] = useState([]);
   const [availableBikes, setAvailableBikes] = useState([]);
@@ -349,16 +349,16 @@ const HomePage = () => {
     : [];
 
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden">
+    <div className="flex flex-col min-h-screen overflow-x-hidden mt-10">
       {/* Hero Section - Ultra Responsive for all devices */}
       <div className="flex flex-col xl:flex-row h-screen">
         {/* Image Section - 40% height on mobile, 50% width on desktop */}
         <div
-          className="w-full xl:w-1/2 h-2/5 xl:h-full bg-cover bg-center main-banner city-image-container relative"
+          className="w-full xl:w-1/2 h-2/5 xl:h-full bg-cover bg-bottom main-banner city-image-container relative "
           style={{
             backgroundImage: `url('${selectedCityImage}')`,
             transition: 'opacity 0.3s ease-in-out',
-            backgroundPosition: window.innerWidth < 768 ? 'center 30%' : 'center center',
+            backgroundPosition: window.innerWidth < 768 ? 'center 1%' : 'center center',
           }}
         >
           {/* Overlay for better text readability on mobile */}
@@ -366,8 +366,8 @@ const HomePage = () => {
         </div>
 
         {/* Form Section - 60% height on mobile, no spacing */}
-        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-500 to-orange-500 slide-in-right">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white mb-4 xl:mb-6 animate-pulse-once text-center leading-tight">
+        <div className="w-full xl:w-1/2 h-3/4 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-600 to-orange-600 slide-in-right">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white xl:mb-6 animate-pulse-once text-center leading-tight">
             Welcome to OkBikes
           </h1>
           
@@ -375,7 +375,7 @@ const HomePage = () => {
             {/* Location Field */}
             <div className="mb-3 xl:mb-4">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-orange-600 font-medium mb-2 text-base xl:text-base"
                 htmlFor="location"
               >
                 Select City
@@ -390,7 +390,7 @@ const HomePage = () => {
                     handleCitySelection(selectedCity);
                   }
                 }}
-                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-900 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
+                className={`w-full px-3 xl:px-4 py-2.5 xl:py-2 border outline-none focus:ring-2 focus:ring-orange-600 hover:shadow-md transition-all duration-300 rounded-md text-base xl:text-base ${
                   errors.location ? "border-red-500" : "border-gray-300"
                 }`}
               >
@@ -409,7 +409,7 @@ const HomePage = () => {
             {/* Start Date Field */}
             <div className="mb-3 xl:mb-4">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-orange-600 font-medium mb-2 text-base xl:text-base"
                 htmlFor="startDate"
               >
                 Start Date & Time
@@ -433,7 +433,7 @@ const HomePage = () => {
             {/* End Date Field */}
             <div className="mb-4 xl:mb-6">
               <label
-                className="block text-orange-800 font-medium mb-2 text-base xl:text-base"
+                className="block text-orange-600 font-medium mb-2 text-base xl:text-base"
                 htmlFor="endDate"
               >
                 End Date & Time
@@ -458,7 +458,7 @@ const HomePage = () => {
             <button
               onClick={handleSearch}
               disabled={isLoading || animationState.searchBtn}
-              className={`w-full bg-orange-800 text-white rounded-full py-3 xl:py-2 px-4 xl:px-4 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 active:scale-95 text-base xl:text-base font-medium ${
+              className={`w-full bg-orange-600 text-white rounded-full py-3 xl:py-2 px-4 xl:px-4 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 active:scale-95 text-base xl:text-base font-medium ${
                 animationState.searchBtn ? 'animate-pulse' : ''
               }`}
             >
@@ -469,7 +469,7 @@ const HomePage = () => {
       </div>
 
       {/* Why Choose OkBikes Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-600 py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-bounce-once">
             Why Choose OkBikes
@@ -520,7 +520,7 @@ const HomePage = () => {
       </div>
 
       {/* How to Book a Bike Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-600 py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 animate-pulse-once">
             How to Book a Bike
@@ -583,7 +583,7 @@ const HomePage = () => {
       </div>
 
       {/* Our Presence Section - Responsive grid */}
-      <div className="py-10 lg:py-16 bg-gradient-to-r from-orange-500 to-orange-400">
+      <div className="py-10 lg:py-16 bg-gradient-to-r from-orange-600 to-orange-600">
         <div className="max-w-7xl mx-auto px-4 lg:px-6">
           <h2 className="text-2xl lg:text-3xl font-bold text-center text-black mb-6 lg:mb-8 animate-float">
             Our Presence
@@ -613,3 +613,619 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { 
+//   FaBicycle, 
+//   FaHandshake, 
+//   FaPhone, 
+//   FaCheck, 
+//   FaMapMarkerAlt, 
+//   FaCreditCard,
+//   FaStar,
+//   FaArrowRight,
+//   FaCalendarAlt,
+//   FaClock,
+//   FaLocationArrow,
+//   FaPlay
+// } from "react-icons/fa";
+
+// const HomePage = () => {
+//   const [formData, setFormData] = useState({
+//     location: null,
+//     cityId: null,
+//     startDate: '',
+//     endDate: ''
+//   });
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [errors, setErrors] = useState({});
+//   const [selectedCityImage, setSelectedCityImage] = useState("/api/placeholder/800/600");
+//   const [cities, setCities] = useState([
+//     { id: 1, name: "Mumbai", image: "/api/placeholder/100/100" },
+//     { id: 2, name: "Delhi", image: "/api/placeholder/100/100" },
+//     { id: 3, name: "Bangalore", image: "/api/placeholder/100/100" },
+//     { id: 4, name: "Chennai", image: "/api/placeholder/100/100" },
+//     { id: 5, name: "Pune", image: "/api/placeholder/100/100" },
+//     { id: 6, name: "Hyderabad", image: "/api/placeholder/100/100" }
+//   ]);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+//   const testimonials = [
+//     {
+//       name: "Rajesh Kumar",
+//       rating: 5,
+//       text: "Amazing service! The bike was in perfect condition and the booking process was super smooth.",
+//       city: "Mumbai"
+//     },
+//     {
+//       name: "Priya Sharma",
+//       rating: 5,
+//       text: "Great experience! Affordable prices and excellent customer support. Highly recommended!",
+//       city: "Delhi"
+//     },
+//     {
+//       name: "Amit Patel",
+//       rating: 4,
+//       text: "Very convenient and reliable. The delivery was on time and the bike was exactly as described.",
+//       city: "Bangalore"
+//     }
+//   ];
+
+//   const formatDateForInput = (date) => {
+//     const year = date.getFullYear();
+//     const month = String(date.getMonth() + 1).padStart(2, "0");
+//     const day = String(date.getDate()).padStart(2, "0");
+//     const hours = String(date.getHours()).padStart(2, "0");
+//     const minutes = String(date.getMinutes()).padStart(2, "0");
+//     return `${year}-${month}-${day}T${hours}:${minutes}`;
+//   };
+
+//   const roundToNextHour = (date) => {
+//     const roundedDate = new Date(date);
+//     roundedDate.setHours(roundedDate.getHours() + 1, 0, 0, 0);
+//     return roundedDate;
+//   };
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+    
+//     const currentDate = new Date();
+//     const roundedStartDate = roundToNextHour(currentDate);
+//     const roundedEndDate = new Date(roundedStartDate);
+//     roundedEndDate.setDate(roundedStartDate.getDate() + 1);
+
+//     setFormData({
+//       location: null,
+//       cityId: null,
+//       startDate: formatDateForInput(roundedStartDate),
+//       endDate: formatDateForInput(roundedEndDate),
+//     });
+
+//     // Testimonial rotation
+//     const testimonialInterval = setInterval(() => {
+//       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+//     }, 4000);
+
+//     return () => clearInterval(testimonialInterval);
+//   }, []);
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+
+//     if (name === 'startDate') {
+//       const selectedDate = new Date(value);
+//       const currentDate = new Date();
+
+//       if (selectedDate < currentDate) {
+//         setFormData((prevData) => ({
+//           ...prevData,
+//           [name]: formatDateForInput(roundToNextHour(currentDate))
+//         }));
+//         setErrors((prevErrors) => ({
+//           ...prevErrors,
+//           [name]: "Past dates cannot be selected. Reset to current time."
+//         }));
+//         return;
+//       }
+
+//       if (formData.endDate && new Date(formData.endDate) < new Date(value)) {
+//         const newEndDate = new Date(value);
+//         newEndDate.setDate(newEndDate.getDate() + 1);
+//         newEndDate.setHours(new Date(value).getHours(), new Date(value).getMinutes());
+
+//         setFormData((prevData) => ({
+//           ...prevData,
+//           [name]: value,
+//           endDate: formatDateForInput(newEndDate)
+//         }));
+//         return;
+//       }
+//     }
+
+//     if (name === 'endDate') {
+//       const startDate = new Date(formData.startDate);
+//       const selectedEndDate = new Date(value);
+
+//       if (selectedEndDate <= startDate) {
+//         const newEndDate = new Date(startDate);
+//         newEndDate.setDate(startDate.getDate() + 1);
+//         newEndDate.setHours(startDate.getHours(), startDate.getMinutes());
+
+//         setFormData((prevData) => ({
+//           ...prevData,
+//           [name]: formatDateForInput(newEndDate)
+//         }));
+//         setErrors((prevErrors) => ({
+//           ...prevErrors,
+//           [name]: "End date must be after start date."
+//         }));
+//         return;
+//       }
+//     }
+
+//     setFormData((prevData) => ({ ...prevData, [name]: value }));
+//     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+//   };
+
+//   const handleCitySelection = (city) => {
+//     setFormData((prevData) => ({
+//       ...prevData,
+//       location: city.name,
+//       cityId: city.id,
+//     }));
+//     setSelectedCityImage(city.image);
+//   };
+
+//   const handleSearch = async () => {
+//     if (!formData.location) {
+//       setErrors({ location: "Please select a city." });
+//       return;
+//     }
+    
+//     setIsLoading(true);
+//     // Simulate API call
+//     setTimeout(() => {
+//       setIsLoading(false);
+//       alert("Searching for available bikes...");
+//     }, 1500);
+//   };
+
+//   return (
+//     <div className="flex flex-col min-h-screen bg-gradient-to-br from-orange-50 to-white overflow-x-hidden">
+      
+//       {/* Hero Section */}
+//       <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-600 via-orange-500 to-red-500 overflow-hidden">
+//         {/* Animated Background Elements */}
+//         <div className="absolute inset-0 overflow-hidden">
+//           <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full animate-pulse"></div>
+//           <div className="absolute top-1/4 right-10 w-20 h-20 bg-white/10 rounded-full animate-bounce"></div>
+//           <div className="absolute bottom-20 left-1/4 w-32 h-32 bg-white/5 rounded-full animate-pulse"></div>
+//           <div className="absolute top-1/3 left-1/3 w-2 h-2 bg-white/30 rounded-full animate-ping"></div>
+//           <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-white/40 rounded-full animate-ping"></div>
+//         </div>
+
+//         <div className="container mx-auto px-6 lg:px-8 relative z-10">
+//           <div className="grid lg:grid-cols-2 gap-12 items-center">
+            
+//             {/* Left Content */}
+//             <div className="text-center lg:text-left space-y-8 animate-fade-in">
+//               <div className="space-y-4">
+//                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+//                   Ride Your
+//                   <span className="block text-yellow-300 animate-pulse">
+//                     Adventure
+//                   </span>
+//                 </h1>
+//                 <p className="text-xl md:text-2xl text-white/90 max-w-2xl">
+//                   Discover the freedom of two wheels with OkBikes. Premium bikes, unbeatable prices, unforgettable journeys.
+//                 </p>
+//               </div>
+              
+//               {/* Stats */}
+//               <div className="flex justify-center lg:justify-start space-x-8">
+//                 <div className="text-center">
+//                   <div className="text-3xl font-bold text-yellow-300">500+</div>
+//                   <div className="text-white/80">Premium Bikes</div>
+//                 </div>
+//                 <div className="text-center">
+//                   <div className="text-3xl font-bold text-yellow-300">15+</div>
+//                   <div className="text-white/80">Cities</div>
+//                 </div>
+//                 <div className="text-center">
+//                   <div className="text-3xl font-bold text-yellow-300">10K+</div>
+//                   <div className="text-white/80">Happy Riders</div>
+//                 </div>
+//               </div>
+
+//               {/* Quick Action Buttons */}
+//               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+//                 <button className="bg-white text-orange-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-50 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg">
+//                   <FaPlay className="text-sm" />
+//                   <span>Watch Demo</span>
+//                 </button>
+//                 <button className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-orange-600 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2">
+//                   <FaLocationArrow />
+//                   <span>Find Bikes Near Me</span>
+//                 </button>
+//               </div>
+//             </div>
+
+//             {/* Right Content - Booking Form */}
+//             <div className="relative">
+//               <div className="bg-white/95 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/20">
+//                 <div className="text-center mb-6">
+//                   <h2 className="text-2xl font-bold text-gray-800 mb-2">Book Your Ride</h2>
+//                   <p className="text-gray-600">Start your journey in 3 easy steps</p>
+//                 </div>
+
+//                 <div className="space-y-6">
+//                   {/* Location Field */}
+//                   <div className="space-y-2">
+//                     <label className="flex items-center text-gray-700 font-medium">
+//                       <FaMapMarkerAlt className="mr-2 text-orange-500" />
+//                       Select City
+//                     </label>
+//                     <select
+//                       name="location"
+//                       value={formData.location || ""}
+//                       onChange={(e) => {
+//                         const selectedCity = cities.find(city => city.name === e.target.value);
+//                         if (selectedCity) {
+//                           handleCitySelection(selectedCity);
+//                         }
+//                       }}
+//                       className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 ${
+//                         errors.location ? "border-red-500" : "border-gray-200 hover:border-orange-300"
+//                       }`}
+//                     >
+//                       <option value="">Choose your city</option>
+//                       {cities.map((city) => (
+//                         <option key={city.id} value={city.name}>
+//                           {city.name}
+//                         </option>
+//                       ))}
+//                     </select>
+//                     {errors.location && (
+//                       <p className="text-red-500 text-sm flex items-center">
+//                         <span className="mr-1">⚠️</span>
+//                         {errors.location}
+//                       </p>
+//                     )}
+//                   </div>
+
+//                   {/* Date Fields */}
+//                   <div className="grid sm:grid-cols-2 gap-4">
+//                     <div className="space-y-2">
+//                       <label className="flex items-center text-gray-700 font-medium">
+//                         <FaCalendarAlt className="mr-2 text-orange-500" />
+//                         Start Date
+//                       </label>
+//                       <input
+//                         type="datetime-local"
+//                         name="startDate"
+//                         value={formData.startDate}
+//                         min={formatDateForInput(new Date())}
+//                         onChange={handleInputChange}
+//                         className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 ${
+//                           errors.startDate ? "border-red-500" : "border-gray-200 hover:border-orange-300"
+//                         }`}
+//                       />
+//                       {errors.startDate && (
+//                         <p className="text-red-500 text-sm">{errors.startDate}</p>
+//                       )}
+//                     </div>
+
+//                     <div className="space-y-2">
+//                       <label className="flex items-center text-gray-700 font-medium">
+//                         <FaClock className="mr-2 text-orange-500" />
+//                         End Date
+//                       </label>
+//                       <input
+//                         type="datetime-local"
+//                         name="endDate"
+//                         value={formData.endDate}
+//                         min={formData.startDate}
+//                         onChange={handleInputChange}
+//                         className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 ${
+//                           errors.endDate ? "border-red-500" : "border-gray-200 hover:border-orange-300"
+//                         }`}
+//                       />
+//                       {errors.endDate && (
+//                         <p className="text-red-500 text-sm">{errors.endDate}</p>
+//                       )}
+//                     </div>
+//                   </div>
+
+//                   {/* Search Button */}
+//                   <button
+//                     onClick={handleSearch}
+//                     disabled={isLoading}
+//                     className="w-full bg-gradient-to-r from-orange-600 to-red-500 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-orange-700 hover:to-red-600 transform hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+//                   >
+//                     {isLoading ? (
+//                       <>
+//                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+//                         <span>Searching...</span>
+//                       </>
+//                     ) : (
+//                       <>
+//                         <span>Find Available Bikes</span>
+//                         <FaArrowRight className="ml-2" />
+//                       </>
+//                     )}
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Features Section */}
+//       <section className="py-20 bg-white">
+//         <div className="container mx-auto px-6">
+//           <div className="text-center mb-16">
+//             <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+//               Why Choose OkBikes?
+//             </h2>
+//             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+//               We're committed to providing you with the best bike rental experience
+//             </p>
+//           </div>
+
+//           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+//             {[
+//               {
+//                 icon: <FaBicycle className="text-4xl text-orange-500" />,
+//                 title: "Premium Fleet",
+//                 description: "Wide range of well-maintained, premium bikes for every adventure"
+//               },
+//               {
+//                 icon: <FaHandshake className="text-4xl text-orange-500" />,
+//                 title: "Best Prices",
+//                 description: "Competitive and transparent pricing with no hidden charges"
+//               },
+//               {
+//                 icon: <FaPhone className="text-4xl text-orange-500" />,
+//                 title: "24/7 Support",
+//                 description: "Round-the-clock customer support for all your queries"
+//               },
+//               {
+//                 icon: <FaCheck className="text-4xl text-orange-500" />,
+//                 title: "Easy Booking",
+//                 description: "Simple 3-step booking process that takes less than 2 minutes"
+//               },
+//               {
+//                 icon: <FaMapMarkerAlt className="text-4xl text-orange-500" />,
+//                 title: "Multiple Locations",
+//                 description: "Available in 15+ cities with convenient pickup points"
+//               },
+//               {
+//                 icon: <FaCreditCard className="text-4xl text-orange-500" />,
+//                 title: "Secure Payments",
+//                 description: "Multiple payment options with bank-level security"
+//               }
+//             ].map((feature, index) => (
+//               <div
+//                 key={index}
+//                 className="group bg-gradient-to-br from-orange-50 to-white p-8 rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-orange-100"
+//               >
+//                 <div className="flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
+//                   {feature.icon}
+//                 </div>
+//                 <h3 className="text-xl font-bold text-gray-800 mb-3">{feature.title}</h3>
+//                 <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* How It Works Section */}
+//       <section className="py-20 bg-gradient-to-br from-gray-50 to-orange-50">
+//         <div className="container mx-auto px-6">
+//           <div className="text-center mb-16">
+//             <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+//               How It Works
+//             </h2>
+//             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+//               Get your bike in just a few simple steps
+//             </p>
+//           </div>
+
+//           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+//             {[
+//               {
+//                 step: "01",
+//                 title: "Choose Location & Dates",
+//                 description: "Select your preferred city and rental duration",
+//                 color: "from-blue-500 to-cyan-500"
+//               },
+//               {
+//                 step: "02",
+//                 title: "Browse & Select Bike",
+//                 description: "Choose from our wide range of premium bikes",
+//                 color: "from-purple-500 to-pink-500"
+//               },
+//               {
+//                 step: "03",
+//                 title: "Book & Pay Securely",
+//                 description: "Complete your booking with secure payment options",
+//                 color: "from-green-500 to-teal-500"
+//               },
+//               {
+//                 step: "04",
+//                 title: "Verify Documents",
+//                 description: "Quick verification of your driving license and ID",
+//                 color: "from-yellow-500 to-orange-500"
+//               },
+//               {
+//                 step: "05",
+//                 title: "Pick Up or Delivery",
+//                 description: "Collect from our location or get doorstep delivery",
+//                 color: "from-red-500 to-pink-500"
+//               },
+//               {
+//                 step: "06",
+//                 title: "Enjoy Your Ride",
+//                 description: "Hit the road and create unforgettable memories",
+//                 color: "from-indigo-500 to-purple-500"
+//               }
+//             ].map((step, index) => (
+//               <div
+//                 key={index}
+//                 className="relative group"
+//               >
+//                 <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-orange-200">
+//                   <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${step.color} text-white font-bold text-xl mb-6 shadow-lg`}>
+//                     {step.step}
+//                   </div>
+//                   <h3 className="text-xl font-bold text-gray-800 mb-3">{step.title}</h3>
+//                   <p className="text-gray-600 leading-relaxed">{step.description}</p>
+//                 </div>
+                
+//                 {/* Connection Line */}
+//                 {index < 5 && (
+//                   <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-orange-300 to-transparent transform -translate-y-1/2"></div>
+//                 )}
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Testimonials Section */}
+//       <section className="py-20 bg-gradient-to-r from-orange-600 to-red-500 text-white">
+//         <div className="container mx-auto px-6">
+//           <div className="text-center mb-16">
+//             <h2 className="text-4xl md:text-5xl font-bold mb-4">
+//               What Our Riders Say
+//             </h2>
+//             <p className="text-xl text-white/90 max-w-2xl mx-auto">
+//               Join thousands of satisfied customers who trust OkBikes
+//             </p>
+//           </div>
+
+//           <div className="max-w-4xl mx-auto">
+//             <div className="bg-white/10 backdrop-blur-lg p-8 md:p-12 rounded-3xl border border-white/20">
+//               <div className="text-center">
+//                 <div className="flex justify-center mb-6">
+//                   {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+//                     <FaStar key={i} className="text-yellow-400 text-2xl mx-1" />
+//                   ))}
+//                 </div>
+//                 <blockquote className="text-2xl md:text-3xl font-light mb-8 leading-relaxed">
+//                   "{testimonials[currentTestimonial].text}"
+//                 </blockquote>
+//                 <div className="text-lg">
+//                   <div className="font-semibold">{testimonials[currentTestimonial].name}</div>
+//                   <div className="text-white/80">{testimonials[currentTestimonial].city}</div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Testimonial Indicators */}
+//             <div className="flex justify-center mt-8 space-x-3">
+//               {testimonials.map((_, index) => (
+//                 <button
+//                   key={index}
+//                   onClick={() => setCurrentTestimonial(index)}
+//                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
+//                     index === currentTestimonial ? 'bg-white' : 'bg-white/40'
+//                   }`}
+//                 />
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Cities Section */}
+//       <section className="py-20 bg-white">
+//         <div className="container mx-auto px-6">
+//           <div className="text-center mb-16">
+//             <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+//               Our Presence
+//             </h2>
+//             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+//               Available in major cities across India with more locations coming soon
+//             </p>
+//           </div>
+
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+//             {cities.map((city, index) => (
+//               <div
+//                 key={city.id}
+//                 className="group text-center p-6 rounded-2xl hover:bg-orange-50 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+//                 onClick={() => handleCitySelection(city)}
+//               >
+//                 <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300">
+//                   <img
+//                     src={city.image}
+//                     alt={city.name}
+//                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+//                   />
+//                 </div>
+//                 <h3 className="font-semibold text-gray-800 group-hover:text-orange-600 transition-colors duration-300">
+//                   {city.name}
+//                 </h3>
+//               </div>
+//             ))}
+//           </div>
+
+//           <div className="text-center mt-12">
+//             <button className="bg-gradient-to-r from-orange-600 to-red-500 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-orange-700 hover:to-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+//               Request New City
+//             </button>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* CTA Section */}
+//       <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+//         <div className="container mx-auto px-6 text-center">
+//           <h2 className="text-4xl md:text-5xl font-bold mb-6">
+//             Ready to Start Your Journey?
+//           </h2>
+//           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+//             Join thousands of riders who have chosen OkBikes for their adventures. 
+//             Book your bike today and experience the freedom of the road.
+//           </p>
+//           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+//             <button 
+//               onClick={handleSearch}
+//               className="bg-gradient-to-r from-orange-600 to-red-500 text-white px-10 py-4 rounded-full font-semibold text-lg hover:from-orange-700 hover:to-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
+//             >
+//               Book Now
+//             </button>
+//             <button className="border-2 border-white text-white px-10 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-gray-900 transform hover:scale-105 transition-all duration-300">
+//               Download App
+//             </button>
+//           </div>
+//         </div>
+//       </section>
+
+//       <style jsx>{`
+//         @keyframes fade-in {
+//           from { opacity: 0; transform: translateY(30px); }
+//           to { opacity: 1; transform: translateY(0); }
+//         }
+//         .animate-fade-in {
+//           animation: fade-in 1s ease-out;
+//         }
+//       `}</style>
+//     </div>
+//   );
+// };
+
+// export default HomePage;

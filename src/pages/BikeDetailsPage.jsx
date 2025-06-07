@@ -36,11 +36,88 @@ const BikeDetailsPage = () => {
     pinCode: false,
   });
   const [rentalDays, setRentalDays] = useState(1);
-  // const [rentalHours, setRentalHours] = useState(0);
+  const [rentalHours, setRentalHours] = useState(0);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [showFullScreenTerms, setShowFullScreenTerms] = useState(false);
+
+  const terms = [
+    "The Responsibility of the vehicle will remain with the customer from the time of taking the vehicle from the company to the time of leaving the vehicle in the company.",
+    "If there is any major, the bike will be cleared in insurance.",
+    "The bike should be in the same condition as when it was taken.",
+    "Since the vehicle has a GPS tracker, the customer will immediately notice wherever the vehicle goes.",
+    "Once the bike has been booked, if the customer does not come to pick up the bike within the stipulated time or if the booking is cancelled, the booking amount will not be refunded.",
+    "If the bike does not return within the given time, the company may charge extra charges.",
+    "If the customer wants to extend the term, the customer should inform the company one day before the expiry of the term.",
+    "If the bike is left outdoors, it is the customer's responsibility to return the bike to the company in the condition in which it was taken.",
+    "If the customer leaves the bike in closed condition at the location, the deposit and rent will not be returned, and the company will take legal action against the customer.",
+    "If the customer returns the bike before the tenure ends, the rent for the remaining days will not be refunded, only the deposit will be refunded.",
+    "The case of damage to the two – wheeler on rent due to accident, mishandling, carelessness appropriate charges will be calculated by the company and the customer is liable to pay.",
+    "In case of minor damages to the helmet. The customer is liable to pay a fine as per vendor.",
+    "If the user damages the vehicles or gets a traffic challan, the money will be Deducted from the deposited amount.",
+    "When the customer takes the bike for rent, there is enough petrol to go from go dawn to the petrol pump. When the customer returns the vehicle to the company, it is mandatory to keep enough petrol for the vehicle to reach the pump again.",
+    "The deposit amount will be given to the customer within 24 hours after checking the vehicle Traffic challan.",
+    "When the customer parks the vehicle in no parking, travels with a triple seat or drives on the wrong Side, then the customer is required to pay traffic toll charges. Company is not responsible for this."
+  ];
+
+  const FullScreenTermsModal = ({ terms, onClose }) => {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-full overflow-y-auto p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">Terms & Conditions</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="space-y-4">
+            {terms.map((term, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-600 text-sm leading-relaxed">{term}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-600">
+            <h3 className="text-sm font-semibold text-orange-800 mb-2">Additional Important Notes:</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs text-orange-700">
+              <div className="bg-white p-2 rounded text-center">
+                <strong>Late Fee:</strong> ₹100/hour
+              </div>
+              <div className="bg-white p-2 rounded text-center">
+                <strong>Cancellation:</strong> Not allowed
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-orange-400 text-white rounded hover:bg-orange-500 transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
@@ -61,10 +138,10 @@ const BikeDetailsPage = () => {
       const end = new Date(formData.endDate);
       const diffTime = Math.abs(end - start);
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      // const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
       setRentalDays(diffDays > 0 ? diffDays : 1);
-      // setRentalHours(diffHours);
+      setRentalHours(diffHours);
     }
   }, [formData.startDate, formData.endDate]);
 
@@ -129,9 +206,9 @@ const BikeDetailsPage = () => {
     const packagePrice = selectedPackage.price || 0;
     const extraDays = rentalDays - (selectedPackage.days || 0);
     const extraDaysPrice = extraDays > 0 ? extraDays * (oneDayPackage.price || 0) : 0;
-    // const additionalHoursPrice = rentalHours * 100;
+    const additionalHoursPrice = rentalHours * 100;
     const deliveryCharge = pickupOption === "DELIVERY_AT_LOCATION" ? 250 : 0;
-    return packagePrice + extraDaysPrice ;  //additionalHoursPrice
+    return packagePrice + extraDaysPrice + additionalHoursPrice + deliveryCharge;
   };
 
   const calculatePricePerUnit = () => {
@@ -151,9 +228,9 @@ const BikeDetailsPage = () => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-    // const hours = String(date.getHours()).padStart(2, "0");
-    // const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}`; //T${hours}:${minutes}
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const totalPrice = calculateTotalPrice();
@@ -199,7 +276,7 @@ const BikeDetailsPage = () => {
       totalPrice: calculateTotalPrice(),
       selectedPackage,
       rentalDays,
-      // rentalHours,
+      rentalHours,
       addressDetails,
       pickupOption,
       deliveryCharge,
@@ -250,9 +327,9 @@ const BikeDetailsPage = () => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    // const hours = String(date.getHours()).padStart(2, "0");
-    // const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year} `;  //${hours}:${minutes}
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   return (
@@ -260,7 +337,7 @@ const BikeDetailsPage = () => {
       initial={{ opacity: 1 }}
       animate={{ opacity: isAnimating ? 0 : 1 }}
       transition={{ duration: 0.6 }}
-      className="container mx-auto py-6 px-4 lg:px-6 mt-12 relative"
+      className="container mx-auto py-6 px-4 lg:px-6 mt-20 relative"
     >
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="flex flex-col shadow border items-center rounded-lg overflow-hidden">
@@ -272,7 +349,24 @@ const BikeDetailsPage = () => {
           <p className="mt-3 text-gray-500 text-xs italic">
             *Images are for representation purposes only.
           </p>
-          
+          <div className="mt-6 p-6 bg-gray-50 rounded-lg shadow-inner w-full">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Terms & Conditions</h2>
+            <div className="space-y-3">
+              {terms.slice(0, 2).map((term, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-gray-600 text-sm leading-relaxed">{term}</p>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowFullScreenTerms(true)}
+              className="mt-4 flex items-center gap-2 text-orange-600 hover:text-orange-800 font-medium text-sm transition-colors"
+            >
+              <ChevronDown className="w-4 h-4" />
+              Read More ({terms.length - 4} more terms)
+            </button>
+          </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg space-y-6">
@@ -325,8 +419,7 @@ const BikeDetailsPage = () => {
             <div className="text-sm text-gray-600">
               <p>From: {formatDateTime(formData.startDate)}</p>
               <p>To: {formatDateTime(formData.endDate)}</p>
-              {/* <p>Duration: {rentalDays} Days {rentalHours > 0 && `+ ${rentalHours} Hours`}</p> */}
-              <p>Duration: {rentalDays} Days </p>
+              <p>Duration: {rentalDays} Days {rentalHours > 0 && `+ ${rentalHours} Hours`}</p>
             </div>
           </div>
 
@@ -382,11 +475,11 @@ const BikeDetailsPage = () => {
                 <p className="text-sm text-gray-600">
                   <strong>Package:</strong> {selectedPackage.days} Days (₹{selectedPackage.price})
                 </p>
-                {/* {rentalHours > 0 && (
+                {rentalHours > 0 && (
                   <p className="text-sm text-gray-600">
                     <strong>Additional Hours:</strong> {rentalHours} Hours (₹{rentalHours * 100})
                   </p>
-                )} */}
+                )}
               </>
             )}
             {pickupOption === "DELIVERY_AT_LOCATION" && (
@@ -523,13 +616,8 @@ const BikeDetailsPage = () => {
             >
               <div className="flex flex-col items-center">
                 <h3 className="text-xl font-semibold mb-3 text-gray-800">Are you sure?</h3>
-                {/* <p className="text-center text-gray-600 mb-6">
-                  Ready to proceed with your bike rental for {rentalDays} days {rentalHours > 0 && `+ ${rentalHours} hours`}?
-                  <br />
-                  Total amount: ₹{totalPrice.toFixed(2)}
-                </p> */}
                 <p className="text-center text-gray-600 mb-6">
-                  Ready to proceed with your bike rental for {rentalDays} days ?
+                  Ready to proceed with your bike rental for {rentalDays} days {rentalHours > 0 && `+ ${rentalHours} hours`}?
                   <br />
                   Total amount: ₹{totalPrice.toFixed(2)}
                 </p>
@@ -553,7 +641,12 @@ const BikeDetailsPage = () => {
         )}
       </AnimatePresence>
 
-      
+      {showFullScreenTerms && (
+        <FullScreenTermsModal
+          terms={terms}
+          onClose={() => setShowFullScreenTerms(false)}
+        />
+      )}
     </motion.div>
   );
 };
