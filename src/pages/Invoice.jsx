@@ -186,15 +186,15 @@ const Invoice = ({
       {/* Invoice Container */}
       <div id="invoice-container" className="relative">
         {/* Header - Improved layout with proper spacing */}
-        <div className="bg-gradient-to-r from-orange-900 to-orange-800 text-white p-8 rounded-t-lg">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-600 text-white p-8 rounded-t-lg">
           <div className="flex justify-between items-start">
             {/* Left side - Logo and Company */}
             <div className="flex items-center space-x-4 flex-1">
               <div className="flex items-center space-x-3">
                 <img
-                  src="/src/assets/okloggo.jpeg"
+                  src="/okbikes.jpg"
                   alt="okbike Logo"
-                  className="h-12 w-12"
+                  className="h-8 w-14"
                 />
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight">okbike</h1>

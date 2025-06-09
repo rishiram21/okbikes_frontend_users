@@ -289,38 +289,59 @@ const HomePage = () => {
     }
   };
 
+  // const handleSearch = async () => {
+  //   setAnimationState((prev) => ({ ...prev, searchBtn: true }));
+
+  //   if (!formData.location) {
+  //     setErrors({ location: "Please Select City." });
+  //     setAnimationState((prev) => ({ ...prev, searchBtn: false }));
+  //     return;
+  //   }
+
+  //   try {
+  //     if (availableBikes.length > 0) {
+  //       navigate("/bike-list", { state: { formData } });
+  //       setTimeout(() => {}, 100);
+  //       return;
+  //     }
+
+  //     const bikes = await fetchAvailableBikes();
+
+  //     if (bikes.length > 0) {
+  //       navigate("/bike-list", { state: { formData } });
+  //       setTimeout(() => {}, 100);
+  //     } else if (lastFetchError) {
+  //       setErrors({ location: lastFetchError });
+  //       setAnimationState((prev) => ({ ...prev, searchBtn: false }));
+  //     } else {
+  //       setAnimationState((prev) => ({ ...prev, searchBtn: false }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Navigation error:", error);
+  //     setAnimationState((prev) => ({ ...prev, searchBtn: false }));
+  //   }
+  // };
+
   const handleSearch = async () => {
-    setAnimationState((prev) => ({ ...prev, searchBtn: true }));
+  // Add button animation
+  setAnimationState(prev => ({...prev, searchBtn: true}));
 
-    if (!formData.location) {
-      setErrors({ location: "Please Select City." });
-      setAnimationState((prev) => ({ ...prev, searchBtn: false }));
-      return;
-    }
+  if (!formData.location) {
+    setErrors({ location: "Please Select City." });
+    setAnimationState(prev => ({...prev, searchBtn: false}));
+    return;
+  }
 
-    try {
-      if (availableBikes.length > 0) {
-        navigate("/bike-list", { state: { formData } });
-        setTimeout(() => {}, 100);
-        return;
-      }
-
-      const bikes = await fetchAvailableBikes();
-
-      if (bikes.length > 0) {
-        navigate("/bike-list", { state: { formData } });
-        setTimeout(() => {}, 100);
-      } else if (lastFetchError) {
-        setErrors({ location: lastFetchError });
-        setAnimationState((prev) => ({ ...prev, searchBtn: false }));
-      } else {
-        setAnimationState((prev) => ({ ...prev, searchBtn: false }));
-      }
-    } catch (error) {
-      console.error("Navigation error:", error);
-      setAnimationState((prev) => ({ ...prev, searchBtn: false }));
-    }
-  };
+  try {
+    // Navigate immediately without checking for available bikes
+    navigate("/bike-list", { state: { formData } });
+    setTimeout(() => {
+    }, 100);
+  } catch (error) {
+    console.error("Navigation error:", error);
+    setAnimationState(prev => ({...prev, searchBtn: false}));
+  }
+};
 
   const filteredCities = Array.isArray(cities)
     ? cities.filter((city) =>

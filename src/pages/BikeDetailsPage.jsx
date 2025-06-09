@@ -274,6 +274,7 @@ const BikeDetailsPage = () => {
     const checkoutData = {
       bike,
       totalPrice: calculateTotalPrice(),
+      deposit: bike.deposit,
       selectedPackage,
       rentalDays,
       rentalHours,
@@ -474,6 +475,9 @@ const BikeDetailsPage = () => {
               <>
                 <p className="text-sm text-gray-600">
                   <strong>Package:</strong> {selectedPackage.days} Days (₹{selectedPackage.price})
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Deposit:</strong> {selectedPackage.deposit}
                 </p>
                 {rentalHours > 0 && (
                   <p className="text-sm text-gray-600">

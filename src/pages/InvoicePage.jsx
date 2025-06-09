@@ -88,18 +88,15 @@ const InvoicePage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-900 to-orange-800 shadow-lg">
-          <div className="container mx-auto px-4 py-6">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-600 shadow-lg">
+          <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <img
-                  src="/src/assets/okloggo.jpeg"
+                  src="/okbikes.jpg"
                   alt="okbike Logo"
-                  className="h-8 w-8"
+                  className="h-10 w-16"
                 />
-                <h1 className="text-2xl font-bold text-white tracking-tight">
-                  OkBike
-                </h1>
               </div>
               <div className="text-white">
                 <span className="text-lg font-medium">Invoice Center</span>
@@ -224,16 +221,13 @@ const InvoicePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 h-10">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-900 to-orange-800 shadow-lg print:hidden">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-600 shadow-lg print:hidden">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <img src="/bikes/okloggo.jpeg" alt="okbike Logo" className="h-8 w-8" />
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                OkBike
-              </h1>
+              <img src="/okbikes.jpg" alt="okbike Logo" className="h-10 w-14" />
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-white text-right">

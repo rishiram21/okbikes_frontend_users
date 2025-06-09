@@ -39,6 +39,7 @@ const CheckoutPage = () => {
   const [bookingError, setBookingError] = useState("");
   const [bookingData, setBookingData] = useState(null);
 
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -135,7 +136,10 @@ const CheckoutPage = () => {
     totalPrice = 0,
   } = checkoutData;
 
-  const depositAmount = bike?.deposit || 0;
+  // console.log(selectedPackage.deposit);
+
+
+  const depositAmount = selectedPackage?.deposit || 0;
   const deliveryCharge = pickupOption === "DELIVERY_AT_LOCATION" ? 250 : 0;
   const convenienceFee = 2;
   const basePrice = totalPrice;
