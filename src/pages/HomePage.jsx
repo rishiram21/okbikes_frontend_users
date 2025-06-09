@@ -365,7 +365,7 @@ const HomePage = () => {
         </div>
 
         {/* Form Section - 60% height on mobile, no spacing */}
-        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-500 to-orange-500 slide-in-right">
+        <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-600 to-orange-600 slide-in-right">
           <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white mb-4 xl:mb-6 animate-pulse-once text-center leading-tight">
             Welcome to OkBikes
           </h1>
@@ -464,7 +464,7 @@ const HomePage = () => {
       </div>
 
       {/* Why Choose OkBikes Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-600 py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-center text-gray-800 mb-8 animate-bounce-once">
             Why Choose OkBike
@@ -525,7 +525,7 @@ const HomePage = () => {
       </div>
 
       {/* How to Book a Bike Section - Ultra responsive grid */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 py-8 sm:py-10 md:py-12 lg:py-16">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-600 py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-center text-gray-800 mb-8 animate-pulse-once">
             How to Book a Bike
@@ -590,7 +590,7 @@ const HomePage = () => {
       </div>
 
       {/* Our Presence Section - Responsive grid */}
-      <div className="py-10 lg:py-16 bg-gradient-to-r from-orange-500 to-orange-400">
+      <div className="py-10 lg:py-16 bg-gradient-to-r from-orange-600 to-orange-600">
         <div className="max-w-7xl mx-auto px-4 lg:px-6">
           <h2 className="text-2xl lg:text-3xl font-bold text-center text-white mb-8 animate-float">
             Our Presence
