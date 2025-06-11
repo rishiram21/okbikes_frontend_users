@@ -17,7 +17,7 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedCityImage, setSelectedCityImage] = useState(
-    "/banner.png"  
+    "/banner-ritz.jpg"  
   );
   const [cities, setCities] = useState([]);
   const [availableBikes, setAvailableBikes] = useState([]);

@@ -279,7 +279,7 @@ const InvoicePage = () => {
         {showInvoice && invoiceDetails && (
           <div className="max-w-4xl mx-auto">
             {/* Invoice Header Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 print:hidden">
+            {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 print:hidden">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="bg-orange-100 rounded-full p-3">
@@ -306,7 +306,7 @@ const InvoicePage = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Invoice Component */}
             <Invoice

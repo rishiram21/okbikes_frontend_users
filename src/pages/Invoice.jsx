@@ -16,27 +16,27 @@ const Invoice = ({
   securityDeposit,
   onClose,
 }) => {
-  const calculateDuration = () => {
-    if (!booking?.startDate || !booking?.endDate) return "";
-    const start = new Date(booking.startDate);
-    const end = new Date(booking.endDate);
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(
-      (diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+  // const calculateDuration = () => {
+  //   if (!booking?.startDate || !booking?.endDate) return "";
+  //   const start = new Date(booking.startDate);
+  //   const end = new Date(booking.endDate);
+  //   const diffTime = Math.abs(end - start);
+  //   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  //   const diffHours = Math.floor(
+  //     (diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  //   );
+  //   const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
 
-    let durationText = "";
-    if (diffDays > 0)
-      durationText += `${diffDays} day${diffDays !== 1 ? "s" : ""} `;
-    if (diffHours > 0 || diffDays > 0)
-      durationText += `${diffHours} hour${diffHours !== 1 ? "s" : ""} `;
-    if (diffMinutes > 0 || diffHours > 0 || diffDays > 0)
-      durationText += `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
+  //   let durationText = "";
+  //   if (diffDays > 0)
+  //     durationText += `${diffDays} day${diffDays !== 1 ? "s" : ""} `;
+  //   if (diffHours > 0 || diffDays > 0)
+  //     durationText += `${diffHours} hour${diffHours !== 1 ? "s" : ""} `;
+  //   if (diffMinutes > 0 || diffHours > 0 || diffDays > 0)
+  //     durationText += `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
 
-    return durationText.trim();
-  };
+  //   return durationText.trim();
+  // };
 
   const today = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -44,50 +44,94 @@ const Invoice = ({
     year: "numeric",
   });
 
-  // Corrected calculations - package price is already total for duration
-  const durationInDays = () => {
-    const durationStr = calculateDuration();
-    const daysMatch = durationStr.match(/(\d+)\s+day/);
-    return daysMatch ? parseInt(daysMatch[1]) : 1; // Default to 1 day if no days found
-  };
+  // const durationInDays = () => {
+  //   const durationStr = calculateDuration();
+  //   const daysMatch = durationStr.match(/(\d+)\s+day/);
+  //   return daysMatch ? parseInt(daysMatch[1]) : 1;
+  // };
 
-  // Use packagePrice directly without multiplying by days
-  const totalPackagePrice = packagePrice;
+  // const totalPackagePrice = packagePrice;
+  // const deliveryCharge =
+  //   booking?.addressType === "DELIVERY_AT_LOCATION" ? 250 : 0;
+  // const gst = totalPackagePrice * 0.18;
+  // const convenienceFee = 2.0;
+  // const subtotal = totalPackagePrice + gst + convenienceFee + deliveryCharge;
+  // const additionalChargesTotal = charges.reduce(
+  //   (sum, charge) => sum + Number(charge.amount || 0),
+  //   0
+  // );
+  // const challansTotal = challans.reduce(
+  //   (sum, challan) => sum + Number(challan.amount || 0),
+  //   0
+  // );
+  // const damagesTotal = damages.reduce(
+  //   (sum, damage) => sum + Number(damage.amount || 0),
+  //   0
+  // );
+  // const totalAmount =
+  //   subtotal +
+  //   additionalChargesTotal +
+  //   lateCharges +
+  //   challansTotal +
+  //   damagesTotal;
 
-  // Check if delivery charge should be added
-  const deliveryCharge =
-    booking?.addressType === "DELIVERY_AT_LOCATION" ? 250 : 0;
+  const calculateDuration = () => {
+  if (!booking?.startDate || !booking?.endDate) return "";
+  const start = new Date(booking.startDate);
+  const end = new Date(booking.endDate);
+  const diffTime = Math.abs(end - start);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
 
-  const gst = totalPackagePrice * 0.18;
-  const convenienceFee = 2.0;
+  let durationText = "";
+  if (diffDays > 0) durationText += `${diffDays} day${diffDays !== 1 ? "s" : ""} `;
+  if (diffHours > 0 || diffDays > 0)
+    durationText += `${diffHours} hour${diffHours !== 1 ? "s" : ""} `;
+  if (diffMinutes > 0 || diffHours > 0 || diffDays > 0)
+    durationText += `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
 
-  // Calculate subtotal and total
-  const subtotal = totalPackagePrice + gst + convenienceFee + deliveryCharge;
-  const additionalChargesTotal = charges.reduce(
-    (sum, charge) => sum + Number(charge.amount || 0),
-    0
-  );
-  const challansTotal = challans.reduce(
-    (sum, challan) => sum + Number(challan.amount || 0),
-    0
-  );
-  const damagesTotal = damages.reduce(
-    (sum, damage) => sum + Number(damage.amount || 0),
-    0
-  );
-  const totalAmount =
-    subtotal +
-    additionalChargesTotal +
-    lateCharges +
-    challansTotal +
-    damagesTotal;
+  return durationText.trim();
+};
 
-  // Function to handle invoice download as PDF
+const durationInDays = () => {
+  const durationStr = calculateDuration();
+  const daysMatch = durationStr.match(/(\d+)\s+day/);
+  return daysMatch ? parseInt(daysMatch[1]) : 1;
+};
+
+// Calculate the total package price with duration
+// const packagePrice = booking?.vehiclePackage?.price || 0;
+const durationDays = durationInDays();
+const totalPackagePrice = packagePrice * durationDays;
+const deliveryCharge = booking?.addressType === "DELIVERY_AT_LOCATION" ? 250 : 0;
+const gst = totalPackagePrice * 0.18;
+const convenienceFee = 2.0;
+const subtotal = totalPackagePrice + gst + convenienceFee + deliveryCharge;
+const additionalChargesTotal = charges.reduce(
+  (sum, charge) => sum + Number(charge.amount || 0),
+  0
+);
+const challansTotal = challans.reduce(
+  (sum, challan) => sum + Number(challan.amount || 0),
+  0
+);
+const damagesTotal = damages.reduce(
+  (sum, damage) => sum + Number(damage.amount || 0),
+  0
+);
+const totalAmount =
+  subtotal +
+  additionalChargesTotal +
+  lateCharges +
+  challansTotal +
+  damagesTotal;
+
+
   const handleDownload = () => {
     const invoiceElement = document.getElementById("invoice-container");
     const invoiceId = `okbike_Invoice_${booking?.bookingId || "Invoice"}`;
 
-    // Create a temporary status element
     const downloadStatusElement = document.createElement("div");
     downloadStatusElement.style.position = "fixed";
     downloadStatusElement.style.top = "10px";
@@ -102,7 +146,6 @@ const Invoice = ({
     downloadStatusElement.textContent = "Generating PDF...";
     document.body.appendChild(downloadStatusElement);
 
-    // Hide the close button and download/print buttons during capture
     const closeButton = document.getElementById("close-button");
     const actionButtons = document.getElementById("action-buttons");
     const originalCloseDisplay = closeButton?.style.display;
@@ -110,15 +153,13 @@ const Invoice = ({
     if (closeButton) closeButton.style.display = "none";
     if (actionButtons) actionButtons.style.display = "none";
 
-    // Use html2canvas to capture the invoice
     html2canvas(invoiceElement, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       logging: false,
       allowTaint: true,
     })
       .then((canvas) => {
-        // Restore the buttons
         if (closeButton) closeButton.style.display = originalCloseDisplay || "";
         if (actionButtons)
           actionButtons.style.display = originalActionDisplay || "";
@@ -130,14 +171,12 @@ const Invoice = ({
           format: "a4",
         });
 
-        // Calculate dimensions to fit the image properly
-        const imgWidth = 210; // A4 width in mm
+        const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
         pdf.save(`${invoiceId}.pdf`);
 
-        // Update status and remove after a delay
         downloadStatusElement.textContent = "PDF Downloaded Successfully!";
         setTimeout(() => {
           if (document.body.contains(downloadStatusElement)) {
@@ -158,17 +197,16 @@ const Invoice = ({
   };
 
   return (
-    <div className="bg-white min-h-screen w-full print:min-h-0 print:w-auto relative">
-      {/* Close Button - Positioned outside the header area */}
+    <div className="bg-white w-full relative">
       <button
         id="close-button"
         onClick={onClose}
-        className="fixed top-6 right-6 z-50 text-white bg-gray-700 hover:bg-gray-800 rounded-full p-3 shadow-lg print:hidden transition-colors duration-200"
+        className="fixed top-6 right-6 z-50 text-white bg-gray-700 hover:bg-gray-800 rounded-full p-2 shadow-lg print:hidden transition-colors duration-200"
         style={{ zIndex: 9999 }}
         aria-label="Close invoice"
       >
         <svg
-          className="w-5 h-5"
+          className="w-4 h-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -183,33 +221,22 @@ const Invoice = ({
         </svg>
       </button>
 
-      {/* Invoice Container */}
       <div id="invoice-container" className="relative">
-        {/* Header - Improved layout with proper spacing */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-600 text-white p-8 rounded-t-lg">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-600 text-white p-4 rounded-t-lg">
           <div className="flex justify-between items-start">
-            {/* Left side - Logo and Company */}
-            <div className="flex items-center space-x-4 flex-1">
-              <div className="flex items-center space-x-3">
-                <img
-                  src="/okbikes.jpg"
-                  alt="okbike Logo"
-                  className="h-8 w-14"
-                />
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight">okbike</h1>
-                  <p className="text-orange-100">Ride with confidence</p>
-                </div>
+            <div className="flex items-center space-x-2">
+              <img src="/okloggo.jpeg" alt="okbike Logo" className="h-12 w-20" />
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">OkBikes</h1>
+                <p className="text-orange-100 text-xs">Ride with confidence</p>
               </div>
             </div>
-
-            {/* Right side - Invoice details with proper margin */}
-            <div className="text-right flex-shrink-0 mr-16">
-              <h2 className="text-2xl font-bold tracking-wide uppercase mb-2">
+            <div className="text-right">
+              <h2 className="text-lg font-bold tracking-wide uppercase mb-1">
                 Invoice
               </h2>
-              <div className="bg-orange-700 px-4 py-2 rounded inline-block">
-                <p className="text-orange-100 font-medium">
+              <div className="bg-orange-700 px-2 py-1 rounded inline-block">
+                <p className="text-orange-100 text-xs font-medium">
                   OKB-{booking?.bookingId}
                 </p>
               </div>
@@ -217,47 +244,43 @@ const Invoice = ({
           </div>
         </div>
 
-        {/* Status Bar */}
-        <div className="bg-orange-50 px-8 py-3 border-b border-orange-100 flex justify-between items-center">
-          <div className="text-gray-600">
+        <div className="bg-orange-50 px-4 py-2 border-b border-orange-100 flex justify-between items-center">
+          <div className="text-gray-600 text-xs">
             <span>Invoice Date: </span>
             <span className="font-medium">{today}</span>
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-8">
-          {/* Address and Date Section */}
-          <div className="flex justify-between mb-8 gap-6">
-            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
-              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">
+        <div className="p-4">
+          <div className="flex justify-between mb-4 gap-2">
+            <div className="bg-gray-50 rounded p-2 border-l-2 border-orange-800 flex-1">
+              <h3 className="font-bold text-gray-700 mb-1 text-xs uppercase tracking-wider">
                 Billed To:
               </h3>
-              <p className="text-gray-800 font-medium text-lg">{userName}</p>
-              <p className="text-gray-600">{userPhone}</p>
+              <p className="text-gray-800 font-medium text-sm">{userName}</p>
+              <p className="text-gray-600 text-xs">{userPhone}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-800 flex-1">
-              <h3 className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">
+            <div className="bg-gray-50 rounded p-2 border-l-2 border-orange-800 flex-1">
+              <h3 className="font-bold text-gray-700 mb-1 text-xs uppercase tracking-wider">
                 Payment Details:
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-xs">
                 Payment Mode:{" "}
                 <span className="font-medium">
                   {booking?.paymentMethod || "Cash On Center"}
                 </span>
               </p>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-xs">
                 Security Deposit:{" "}
                 <span className="font-medium">₹{securityDeposit}</span>
               </p>
             </div>
           </div>
 
-          {/* Booking Details */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-orange-900 pb-1 mb-2 flex items-center">
               <svg
-                className="w-5 h-5 mr-2"
+                className="w-4 h-4 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -272,25 +295,25 @@ const Invoice = ({
               </svg>
               Booking Summary
             </h3>
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Vehicle Model</p>
-                  <p className="font-medium text-gray-900 text-lg">
+                  <p className="text-gray-500 text-xs mb-1">Vehicle Model</p>
+                  <p className="font-medium text-gray-900 text-sm">
                     {vehicleModel}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Vehicle Number</p>
-                  <p className="font-medium text-gray-900 text-lg">
+                  <p className="text-gray-500 text-xs mb-1">Vehicle Number</p>
+                  <p className="font-medium text-gray-900 text-sm">
                     {vehicleNumber || "Not assigned"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">
+                  <p className="text-gray-500 text-xs mb-1">
                     Start Date & Time
                   </p>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-gray-900 text-xs">
                     {new Date(booking?.startDate).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -302,8 +325,8 @@ const Invoice = ({
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">End Date & Time</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-gray-500 text-xs mb-1">End Date & Time</p>
+                  <p className="font-medium text-gray-900 text-xs">
                     {new Date(booking?.endDate).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -315,14 +338,14 @@ const Invoice = ({
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Duration</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-gray-500 text-xs mb-1">Duration</p>
+                  <p className="font-medium text-gray-900 text-xs">
                     {calculateDuration()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Package</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-gray-500 text-xs mb-1">Package</p>
+                  <p className="font-medium text-gray-900 text-xs">
                     {booking?.vehiclePackage?.name || "Standard Package"}
                   </p>
                 </div>
@@ -330,11 +353,10 @@ const Invoice = ({
             </div>
           </div>
 
-          {/* Charges Breakdown */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-orange-900 pb-2 mb-4 flex items-center">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-orange-900 pb-1 mb-2 flex items-center">
               <svg
-                className="w-5 h-5 mr-2"
+                className="w-4 h-4 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -349,73 +371,90 @@ const Invoice = ({
               </svg>
               Charges
             </h3>
-            <div className="rounded-lg border-2 border-gray-200 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b-2 border-gray-200">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">
-                      Description
-                    </th>
-                    <th className="text-right py-3 px-4 text-gray-700 font-semibold">
-                      Amount
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td className="py-3 px-4 text-gray-700">Package Price</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">
-                      ₹{totalPackagePrice.toFixed(2)}
-                    </td>
-                  </tr>
+            <div className="rounded border border-gray-200 overflow-hidden">
+  <table className="w-full">
+    <thead className="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th className="text-left py-1 px-2 text-gray-700 font-semibold text-xs">
+          Description
+        </th>
+        <th className="text-right py-1 px-2 text-gray-700 font-semibold text-xs">
+          Amount
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200">
+      <tr>
+        <td className="py-1 px-2 text-gray-700 text-xs">
+          Package Price (Duration: {calculateDuration()})
+        </td>
+        <td className="py-1 px-2 text-gray-700 text-right text-xs">
+          ₹{totalPackagePrice.toFixed(2)}
+        </td>
+      </tr>
+      <tr>
+        <td className="py-1 px-2 text-gray-700 text-xs">
+          GST (18%)
+        </td>
+        <td className="py-1 px-2 text-gray-700 text-right text-xs">
+          ₹{gst.toFixed(2)}
+        </td>
+      </tr>
+      <tr>
+        <td className="py-1 px-2 text-gray-700 text-xs">
+          Convenience Fee
+        </td>
+        <td className="py-1 px-2 text-gray-700 text-right text-xs">
+          ₹{convenienceFee.toFixed(2)}
+        </td>
+      </tr>
+      {booking?.addressType === "DELIVERY_AT_LOCATION" && (
+        <tr className="bg-orange-50">
+          <td className="py-1 px-2 text-orange-700 font-medium text-xs">
+            Delivery Charge
+          </td>
+          <td className="py-1 px-2 text-orange-700 font-medium text-right text-xs">
+            ₹{deliveryCharge.toFixed(2)}
+          </td>
+        </tr>
+      )}
 
-                  <tr>
-                    <td className="py-3 px-4 text-gray-700">GST (18%)</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">
-                      ₹{gst.toFixed(2)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 text-gray-700">Convenience Fee</td>
-                    <td className="py-3 px-4 text-gray-700 text-right">
-                      ₹{convenienceFee.toFixed(2)}
-                    </td>
-                  </tr>
-                  {booking?.addressType === "DELIVERY_AT_LOCATION" && (
-                    <tr className="bg-orange-50">
-                      <td className="py-3 px-4 text-orange-700 font-medium">
-                        Delivery Charge
-                      </td>
-                      <td className="py-3 px-4 text-orange-700 font-medium text-right">
-                        ₹{deliveryCharge.toFixed(2)}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-                <tfoot className="bg-orange-50">
-                  <tr className="border-t-2 border-orange-200">
-                    <td className="py-4 px-4 text-lg font-bold text-orange-900">
-                      Total Amount
-                    </td>
-                    <td className="py-4 px-4 text-2xl font-bold text-orange-900 text-right">
-                      ₹{totalAmount.toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-              <div className="px-4 py-2 bg-gray-50">
-                <p className="font-semibold text-red-600 text-sm">
-                  * Note: Deposit is not included in Total Amount
-                </p>
-              </div>
-            </div>
+      {charges
+        .filter((charge) => charge.type === "Additional")
+        .map((charge, index) => (
+          <tr key={index}>
+            <td className="py-1 px-2 text-gray-700 text-xs">
+              {charge.type}
+            </td>
+            <td className="py-1 px-2 text-gray-700 text-right text-xs">
+              ₹{charge.amount.toFixed(2)}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+    <tfoot className="bg-orange-50">
+      <tr className="border-t border-orange-200">
+        <td className="py-2 px-2 text-sm font-bold text-orange-900">
+          Total Amount
+        </td>
+        <td className="py-2 px-2 text-lg font-bold text-orange-900 text-right">
+          ₹{totalAmount.toFixed(2)}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <div className="px-2 py-1 bg-gray-50">
+    <p className="font-semibold text-red-600 text-xs">
+      * Note: Deposit is not included in Total Amount
+    </p>
+  </div>
+</div>
           </div>
 
-          {/* Terms and Conditions */}
-          <div className="mb-8 text-sm text-gray-600 border-t border-gray-200 pt-6">
-            <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+          {/* <div className="mb-4 text-xs text-gray-600 border-t border-gray-200 pt-3">
+            <h4 className="font-semibold text-gray-700 mb-1 flex items-center">
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-3 h-3 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -430,41 +469,43 @@ const Invoice = ({
               </svg>
               Terms & Conditions:
             </h4>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>
+            <ul className="list-disc pl-4 space-y-1">
+              <li className="text-xs">
                 Security deposit will be refunded after the bike is returned in
                 good condition.
               </li>
-              <li>
+              <li className="text-xs">
                 Late returns will incur additional charges as per rental
                 agreement.
               </li>
-              <li>Fuel charges are not included in the package price.</li>
-              <li>
+              <li className="text-xs">
+                Fuel charges are not included in the package price.
+              </li>
+              <li className="text-xs">
                 The renter is responsible for any traffic violations during the
                 rental period.
               </li>
-              <li>Damages to the vehicle will be charged as per assessment.</li>
+              <li className="text-xs">
+                Damages to the vehicle will be charged as per assessment.
+              </li>
               {booking?.addressType === "DELIVERY_AT_LOCATION" && (
-                <li>
+                <li className="text-xs">
                   Delivery charge of ₹250 applies for location-based delivery
                   service.
                 </li>
               )}
-            </ul>
-          </div>
+            </ul> */}
+          {/* </div> */}
 
-          {/* Footer */}
-          <div className="text-center text-sm text-gray-600 mt-8 border-t border-gray-200 pt-6">
+          <div className="text-center text-xs text-gray-600 mt-4 border-t border-gray-200 pt-3">
             <p className="font-medium">Thank you for choosing okbike!</p>
-            <div className="flex justify-center items-center mt-2 space-x-4">
+            <div className="flex justify-center items-center mt-1 space-x-2">
               <div className="flex items-center">
                 <svg
-                  className="w-4 h-4 mr-1 text-gray-500"
+                  className="w-3 h-3 mr-1 text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
@@ -473,15 +514,14 @@ const Invoice = ({
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <span>okloadexpress11@gmail.com</span>
+                <span className="text-xs">okloadexpress11@gmail.com</span>
               </div>
               <div className="flex items-center">
                 <svg
-                  className="w-4 h-4 mr-1 text-gray-500"
+                  className="w-3 h-3 mr-1 text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
@@ -490,26 +530,25 @@ const Invoice = ({
                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                   />
                 </svg>
-                <span>+91 7767060670/ +91 9112412191</span>
+                <span className="text-xs text-right">+917767060670 / +919112412191 </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons (Bottom) */}
       <div
         id="action-buttons"
-        className="bg-gray-50 px-8 py-4 rounded-b-lg border-t border-gray-200 print:hidden"
+        className="bg-gray-50 px-4 py-2 rounded-b-lg border-t border-gray-200 print:hidden"
       >
         <div className="flex justify-between">
           <div className="flex space-x-2">
             <button
-              className="px-6 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300 flex items-center justify-center shadow-md"
+              className="px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300 flex items-center justify-center shadow-md text-xs"
               onClick={handleDownload}
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-3 h-3 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -526,11 +565,11 @@ const Invoice = ({
             </button>
           </div>
           <button
-            className="px-6 py-2.5 bg-orange-800 text-white rounded-md hover:bg-orange-700 transition duration-300 flex items-center justify-center shadow-md"
+            className="px-4 py-1.5 bg-orange-800 text-white rounded-md hover:bg-orange-700 transition duration-300 flex items-center justify-center shadow-md text-xs"
             onClick={() => window.print()}
           >
             <svg
-              className="w-4 h-4 mr-2"
+              className="w-3 h-3 mr-1"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -540,7 +579,7 @@ const Invoice = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
               />
             </svg>
             Print Invoice

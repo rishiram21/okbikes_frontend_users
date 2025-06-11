@@ -569,12 +569,12 @@ const Navbar = () => {
                       >
                         Log Out
                       </button>
-                      <button
+                      {/* <button
                         onClick={handleDeleteAccount}
                         className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 mt-1"
                       >
                         Delete Account
-                      </button>
+                      </button> */}
                     </>
                   ) : (
                     <Link

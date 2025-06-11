@@ -208,7 +208,7 @@ const BikeDetailsPage = () => {
     const extraDaysPrice = extraDays > 0 ? extraDays * (oneDayPackage.price || 0) : 0;
     const additionalHoursPrice = rentalHours * 100;
     const deliveryCharge = pickupOption === "DELIVERY_AT_LOCATION" ? 250 : 0;
-    return packagePrice + extraDaysPrice + additionalHoursPrice + deliveryCharge;
+    return packagePrice + extraDaysPrice + additionalHoursPrice;
   };
 
   const calculatePricePerUnit = () => {

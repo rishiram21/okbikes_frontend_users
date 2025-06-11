@@ -144,9 +144,8 @@ const CheckoutPage = () => {
   const convenienceFee = 2;
   const basePrice = totalPrice;
   const taxableAmount = basePrice + deliveryCharge + convenienceFee;
-  const gstAmount = taxableAmount * 0.18;
-  const totalAmountBeforeDiscount =
-    basePrice + deliveryCharge + gstAmount + depositAmount + convenienceFee;
+  const gstAmount = basePrice * 0.18;
+  const totalAmountBeforeDiscount =basePrice + deliveryCharge + gstAmount + depositAmount + convenienceFee;
   const payableAmount = Math.max(0, totalAmountBeforeDiscount - discount);
 
   const handleDropdownChange = (e) => {

@@ -43,59 +43,55 @@ const LoginPage = () => {
 
   const sendOTP = async () => {
     if (mobile.length !== 10) {
-      setError("Enter a valid 10-digit mobile number.");
-      return;
+        setError("Enter a valid 10-digit mobile number.");
+        return;
     }
 
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
-      });
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/send-login-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phoneNumber: `+91${mobile}` }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        // Check if the error is related to unregistered number
-        if (response.status === 404 || 
-            data.message?.toLowerCase().includes('not found') || 
-            data.message?.toLowerCase().includes('not registered') ||
-            data.message?.toLowerCase().includes('user does not exist')) {
-          
-          // Show confirmation dialog before redirecting
-          const shouldRedirect = window.confirm(
-            "This mobile number is not registered. Would you like to register now?"
-          );
-          
-          if (shouldRedirect) {
-            // Pre-fill the mobile number in registration page
-            navigate("/register", { state: { mobile } });
-            return;
-          }
+        if (!response.ok) {
+            // Check if the error is related to unregistered number
+            if (response.status === 500 && data.message?.toLowerCase().includes('user not found')) {
+                // Show confirmation dialog before redirecting
+                const shouldRedirect = window.confirm(
+                    "This mobile number is not registered. Would you like to register now?"
+                );
+
+                if (shouldRedirect) {
+                    // Pre-fill the mobile number in registration page
+                    navigate("/register", { state: { mobile } });
+                    return;
+                }
+            }
+            throw new Error(data.message || "Failed to send OTP.");
         }
-        
-        throw new Error(data.message || "Failed to send OTP.");
-      }
 
-      setOtpSent(true);
-      showAlert("OTP sent successfully!");
+        setOtpSent(true);
+        showAlert(data.message || "OTP sent successfully!");
 
-      // Focus on OTP input after a short delay to allow rendering
-      setTimeout(() => {
-        if (otpInputRef.current) {
-          otpInputRef.current.focus();
-        }
-      }, 100);
+        setTimeout(() => {
+            if (otpInputRef.current) {
+                otpInputRef.current.focus();
+            }
+        }, 100);
     } catch (err) {
-      setError(err.message);
+        console.error("Error sending OTP:", err);
+        setError(err.message || "An error occurred while sending OTP.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   const verifyOTP = async () => {
     if (otp.length !== 4) { 
@@ -126,7 +122,7 @@ const LoginPage = () => {
       setShowSuccessAnimation(true);
 
       setTimeout(() => {
-        navigate("/profile"); // Redirect to checkout or dashboard
+        navigate("/profile"); // Redirect to profile or dashboard
       }, 2000);
     } catch (err) {
       setError(err.message);

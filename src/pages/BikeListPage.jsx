@@ -58,7 +58,7 @@ const BikeListPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const filterRef = useRef(null);
-  const bikesPerPage = 8;
+  const bikesPerPage = 10;
 
   // Fetch bikes based on form data
   useEffect(() => {
@@ -110,22 +110,22 @@ const BikeListPage = () => {
       }));
 
       // Add the Ola scooter as a static entry
-      const olaScooter = {
-        id: 1,
-        model: "Ola Electric",
-        image: "/ola.jpg",
-        perDayRent: 399,
-        deposit: 0,
-        registrationYear: 2023,
-        storeName: "Wakad", // Use a dynamic location if needed
-        categoryName: "Scooter",
-        categoryId: 1,
-        fuelType: "ELECTRIC",
-        brand: "Ola",
-        vehicleType: "Scooter",
-      };
+      // const olaScooter = {
+      //   id: 1,
+      //   model: "Ola Electric",
+      //   image: "/ola.jpg",
+      //   perDayRent: 399,
+      //   deposit: 0,
+      //   registrationYear: 2023,
+      //   storeName: "Wakad", // Use a dynamic location if needed
+      //   categoryName: "Scooter",
+      //   categoryId: 1,
+      //   fuelType: "ELECTRIC",
+      //   brand: "Ola",
+      //   vehicleType: "Scooter",
+      // };
 
-      combinedBikes.push(olaScooter);
+      // combinedBikes.push(olaScooter);
 
       console.log("Fetched Bikes:", combinedBikes);
       setBikes(combinedBikes);
@@ -133,23 +133,23 @@ const BikeListPage = () => {
     } catch (error) {
       console.error("Error fetching bikes:", error);
       // Fallback to the Ola scooter if fetch fails
-      const olaScooter = {
-        id: 1,
-        model: "Ola Electric",
-        image: "/ola.jpg",
-        perDayRent: 399,
-        deposit: 0,
-        registrationYear: 2023,
-        storeName: "Wakad", // Use a dynamic location if needed
-        categoryName: "Scooter",
-        categoryId: 1,
-        fuelType: "ELECTRIC",
-        brand: "Ola",
-        vehicleType: "Scooter",
-      };
+      // const olaScooter = {
+      //   id: 1,
+      //   model: "Ola Electric",
+      //   image: "/ola.jpg",
+      //   perDayRent: 399,
+      //   deposit: 0,
+      //   registrationYear: 2023,
+      //   storeName: "Wakad", // Use a dynamic location if needed
+      //   categoryName: "Scooter",
+      //   categoryId: 1,
+      //   fuelType: "ELECTRIC",
+      //   brand: "Ola",
+      //   vehicleType: "Scooter",
+      // };
 
-      setBikes([olaScooter]);
-      setFilteredBikes([olaScooter]);
+      // setBikes([olaScooter]);
+      // setFilteredBikes([olaScooter]);
     } finally {
       setLoading(false);
     }
@@ -325,7 +325,7 @@ const BikeListPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 relative min-h-screen mt-14">
+    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6 relative min-h-screen mt-20">
       {/* Filter toggle button for mobile */}
       <button
         onClick={() => setShowFilters(!showFilters)}
