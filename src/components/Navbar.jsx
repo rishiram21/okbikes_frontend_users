@@ -277,69 +277,142 @@ const Navbar = () => {
     setShowDeleteConfirm(false); // Close the confirmation modal
   };
 
+  // const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   let updatedStartDate = formData.startDate;
+  //   let updatedEndDate = formData.endDate;
+  //   let dateError = null;
+
+  //   if (name === "startDate") {
+  //     const selectedDate = new Date(value);
+  //     const currentDate = new Date();
+
+  //     // Validate start date is not in the past
+  //     if (selectedDate < currentDate) {
+  //       const newStartDate = roundToNextHour(currentDate);
+  //       updatedStartDate = formatDateForInput(newStartDate);
+  //       dateError =
+  //         "Past dates can't be selected. Date set to next available time.";
+  //     } else {
+  //       updatedStartDate = value;
+  //     }
+
+  //     // If end date exists and is before new start date, adjust end date
+  //     if (
+  //       formData.endDate &&
+  //       new Date(formData.endDate) <= new Date(updatedStartDate)
+  //     ) {
+  //       const newEndDate = new Date(updatedStartDate);
+  //       newEndDate.setDate(newEndDate.getDate() + 1);
+  //       updatedEndDate = formatDateForInput(newEndDate);
+  //     }
+  //   }
+
+  //   if (name === "endDate") {
+  //     const selectedEndDate = new Date(value);
+  //     const startDateObj = new Date(formData.startDate);
+
+  //     // Validate end date is after start date
+  //     if (selectedEndDate <= startDateObj) {
+  //       const newEndDate = new Date(startDateObj);
+  //       newEndDate.setDate(startDateObj.getDate() + 1);
+  //       updatedEndDate = formatDateForInput(newEndDate);
+  //       dateError = "End date must be after start date. Date adjusted.";
+  //     } else {
+  //       updatedEndDate = value;
+  //     }
+  //   }
+
+  //   // Update state with validated dates
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     startDate: updatedStartDate,
+  //     endDate: updatedEndDate,
+  //     [name]: name === "startDate" ? updatedStartDate : updatedEndDate,
+  //   }));
+
+  //   // Set error if any
+  //   if (dateError) {
+  //     setErrors((prev) => ({ ...prev, [name]: dateError }));
+  //     // Clear error after 3 seconds
+  //     setTimeout(() => {
+  //       setErrors((prev) => ({ ...prev, [name]: "" }));
+  //     }, 3000);
+  //   }
+  // };
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    let updatedStartDate = formData.startDate;
-    let updatedEndDate = formData.endDate;
-    let dateError = null;
+  const { name, value } = e.target;
+  let updatedStartDate = formData.startDate;
+  let updatedEndDate = formData.endDate;
+  let dateError = null;
 
-    if (name === "startDate") {
-      const selectedDate = new Date(value);
-      const currentDate = new Date();
+  if (name === "startDate") {
+    const selectedDate = new Date(value);
+    const currentDate = new Date();
 
-      // Validate start date is not in the past
-      if (selectedDate < currentDate) {
-        const newStartDate = roundToNextHour(currentDate);
-        updatedStartDate = formatDateForInput(newStartDate);
-        dateError =
-          "Past dates can't be selected. Date set to next available time.";
-      } else {
-        updatedStartDate = value;
-      }
-
-      // If end date exists and is before new start date, adjust end date
-      if (
-        formData.endDate &&
-        new Date(formData.endDate) <= new Date(updatedStartDate)
-      ) {
-        const newEndDate = new Date(updatedStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 1);
-        updatedEndDate = formatDateForInput(newEndDate);
-      }
+    // Validate start date is not in the past
+    if (selectedDate < currentDate) {
+      const newStartDate = roundToNextHour(currentDate);
+      updatedStartDate = formatDateForInput(newStartDate);
+      dateError = "Past dates can't be selected. Date set to next available time.";
+    } else {
+      updatedStartDate = value;
     }
 
-    if (name === "endDate") {
-      const selectedEndDate = new Date(value);
-      const startDateObj = new Date(formData.startDate);
+    // If end date exists and is before new start date, adjust end date
+    if (formData.endDate && new Date(formData.endDate) <= new Date(updatedStartDate)) {
+      const newEndDate = new Date(updatedStartDate);
+      newEndDate.setDate(newEndDate.getDate() + 1);
+      updatedEndDate = formatDateForInput(newEndDate);
+    }
+  }
 
-      // Validate end date is after start date
-      if (selectedEndDate <= startDateObj) {
+  if (name === "endDate") {
+    const selectedEndDate = new Date(value);
+    const startDateObj = new Date(formData.startDate);
+
+    // Validate end date is after start date
+    if (selectedEndDate <= startDateObj) {
+      const newEndDate = new Date(startDateObj);
+      newEndDate.setDate(startDateObj.getDate() + 1);
+      updatedEndDate = formatDateForInput(newEndDate);
+      dateError = "End date must be after start date. Date adjusted.";
+    } else {
+      // Check if the time difference is less than one hour
+      const timeDifference = selectedEndDate - startDateObj;
+      const oneHourInMilliseconds = 60 * 60 * 1000; // 1 hour in milliseconds
+
+      if (timeDifference < oneHourInMilliseconds) {
         const newEndDate = new Date(startDateObj);
-        newEndDate.setDate(startDateObj.getDate() + 1);
+        newEndDate.setHours(startDateObj.getHours() + 1);
         updatedEndDate = formatDateForInput(newEndDate);
-        dateError = "End date must be after start date. Date adjusted.";
+        dateError = "End date must be at least one hour after start date. Date adjusted.";
       } else {
         updatedEndDate = value;
       }
     }
+  }
 
-    // Update state with validated dates
-    setFormData((prevData) => ({
-      ...prevData,
-      startDate: updatedStartDate,
-      endDate: updatedEndDate,
-      [name]: name === "startDate" ? updatedStartDate : updatedEndDate,
-    }));
+  // Update state with validated dates
+  setFormData((prevData) => ({
+    ...prevData,
+    startDate: name === "startDate" ? updatedStartDate : prevData.startDate,
+    endDate: name === "endDate" ? updatedEndDate : prevData.endDate,
+    [name]: name === "startDate" ? updatedStartDate : updatedEndDate,
+  }));
 
-    // Set error if any
-    if (dateError) {
-      setErrors((prev) => ({ ...prev, [name]: dateError }));
-      // Clear error after 3 seconds
-      setTimeout(() => {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }, 3000);
-    }
-  };
+  // Set error if any
+  if (dateError) {
+    setErrors((prev) => ({ ...prev, [name]: dateError }));
+    // Clear error after 3 seconds
+    setTimeout(() => {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }, 3000);
+  } else {
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  }
+};
 
   const formatDateForInput = (date) => {
     const year = date.getFullYear();

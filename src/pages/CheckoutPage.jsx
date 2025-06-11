@@ -728,15 +728,15 @@ const CheckoutPage = () => {
                     buttonText="Pay Online (Razorpay)"
                   />
                 )}
-                {!bookingData && (
-                  <button
-                    onClick={handleOnlinePayment}
-                    disabled={true}
-                    className="w-full bg-green-500 text-white py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors shadow-md cursor-not-allowed opacity-75"
-                  >
-                    Pay Online
-                  </button>
-                )}
+                {/* {!bookingData && (
+                  // <button
+                  //   onClick={handleOnlinePayment}
+                  //   disabled={true}
+                  //   className="w-full bg-green-500 text-white py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors shadow-md cursor-not-allowed opacity-75"
+                  // >
+                  //   Pay Online
+                  // </button>
+                )} */}
               </div>
               <button
                 onClick={() => {

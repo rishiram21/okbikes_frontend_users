@@ -58,7 +58,7 @@ const BikeListPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const filterRef = useRef(null);
-  const bikesPerPage = 10;
+  const bikesPerPage = 8;
 
   // Fetch bikes based on form data
   useEffect(() => {
@@ -389,22 +389,36 @@ const BikeListPage = () => {
         </div>
 
         {/* Location filter section */}
-        <div className="mb-6">
-          <h4 className="font-semibold mb-3 text-sm text-gray-700 uppercase tracking-wider border-b pb-2">
-            Location
-          </h4>
-          <select
-            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-2 focus:ring-orange-300 focus:border-orange-500 focus:outline-none transition-all"
-            onChange={(e) => updateFilters("location", e.target.value)}
-            value={selectedFilters.location}
-          >
-            <option value="">All Locations</option>
-            {/* Dynamically populate locations from fetched data */}
-            {Array.from(new Set(bikes.map(bike => bike.storeName))).map((location, index) => (
-              <option key={index} value={location}>{location}</option>
-            ))}
-          </select>
-        </div>
+<div className="mb-6">
+  <h4 className="font-semibold mb-3 text-sm text-gray-700 uppercase tracking-wider border-b pb-2">
+    Location
+  </h4>
+  <ul className="space-y-2">
+    <li>
+      {/* <button
+        className={`w-full text-left px-4 py-2 rounded-lg border transition-all ${
+          selectedFilters.location === "" ? "bg-orange-100 border-orange-400" : "bg-white border-gray-300"
+        }`}
+        onClick={() => updateFilters("location", "")}
+      >
+        All Locations
+      </button> */}
+    </li>
+    {Array.from(new Set(bikes.map(bike => bike.storeName))).map((location, index) => (
+      <li key={index}>
+        <button
+          className={`w-full text-left px-4 py-2 rounded-lg border transition-all ${
+            selectedFilters.location === location ? "bg-orange-100 border-orange-400" : "bg-white border-gray-300"
+          }`}
+          onClick={() => updateFilters("location", location)}
+        >
+          {location}
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
+
 
         {/* Reset filters button */}
         <button

@@ -17,7 +17,7 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
   const [selectedCityImage, setSelectedCityImage] = useState(
-    "/banner-ritz.jpg"  
+    "/banner-okbike.png"  
   );
   const [cities, setCities] = useState([]);
   const [availableBikes, setAvailableBikes] = useState([]);
@@ -198,67 +198,88 @@ const HomePage = () => {
   }, [formData.location, formData.startDate, formData.endDate]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    if (name === "startDate") {
-      const selectedDate = new Date(value);
-      const currentDate = new Date();
+  if (name === "startDate") {
+    const selectedDate = new Date(value);
+    const currentDate = new Date();
 
-      if (selectedDate < currentDate) {
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: formatDateForInput(roundToNextHour(currentDate)),
-        }));
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]:
-            "Past dates and times cannot be selected. Date and time have been reset to current time.",
-        }));
-        return;
-      }
-
-      if (formData.endDate && new Date(formData.endDate) < new Date(value)) {
-        const newEndDate = new Date(value);
-        newEndDate.setDate(newEndDate.getDate() + 1);
-        newEndDate.setHours(
-          new Date(value).getHours(),
-          new Date(value).getMinutes()
-        );
-
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: value,
-          endDate: formatDateForInput(newEndDate),
-        }));
-        return;
-      }
+    if (selectedDate < currentDate) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: formatDateForInput(roundToNextHour(currentDate)),
+      }));
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]:
+          "Past dates and times cannot be selected. Date and time have been reset to current time.",
+      }));
+      return;
     }
 
-    if (name === "endDate") {
-      const startDate = new Date(formData.startDate);
-      const selectedEndDate = new Date(value);
+    if (formData.endDate && new Date(formData.endDate) < new Date(value)) {
+      const newEndDate = new Date(value);
+      newEndDate.setDate(newEndDate.getDate() + 1);
+      newEndDate.setHours(
+        new Date(value).getHours(),
+        new Date(value).getMinutes()
+      );
 
-      if (selectedEndDate <= startDate) {
-        const newEndDate = new Date(startDate);
-        newEndDate.setDate(startDate.getDate() + 1);
-        newEndDate.setHours(startDate.getHours(), startDate.getMinutes());
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+        endDate: formatDateForInput(newEndDate),
+      }));
+      return;
+    }
+  }
 
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: formatDateForInput(newEndDate),
-        }));
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]:
-            "End date and time must be after start date and time. Date and time have been adjusted.",
-        }));
-        return;
-      }
+  if (name === "endDate") {
+    const startDate = new Date(formData.startDate);
+    const selectedEndDate = new Date(value);
+
+    if (selectedEndDate <= startDate) {
+      const newEndDate = new Date(startDate);
+      newEndDate.setDate(startDate.getDate() + 1);
+      newEndDate.setHours(startDate.getHours(), startDate.getMinutes());
+
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: formatDateForInput(newEndDate),
+      }));
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]:
+          "End date and time must be after start date and time. Date and time have been adjusted.",
+      }));
+      return;
     }
 
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-  };
+    // Check if the time difference is less than one hour
+    const timeDifference = selectedEndDate - startDate;
+    const oneHourInMilliseconds = 60 * 60 * 1000; // 1 hour in milliseconds
+
+    if (timeDifference < oneHourInMilliseconds) {
+      const newEndDate = new Date(startDate);
+      newEndDate.setHours(startDate.getHours() + 1);
+
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: formatDateForInput(newEndDate),
+      }));
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]:
+          "End date and time must be at least one hour after the start date and time. Date and time have been adjusted.",
+      }));
+      return;
+    }
+  }
+
+  setFormData((prevData) => ({ ...prevData, [name]: value }));
+  setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+};
+
 
   const handleCitySelection = (city) => {
     setAnimationState((prev) => ({ ...prev, citySelection: true }));
@@ -367,7 +388,7 @@ const HomePage = () => {
         {/* Form Section - 60% height on mobile, no spacing */}
         <div className="w-full xl:w-1/2 h-3/5 xl:h-full flex flex-col justify-center items-center px-4 xl:px-8 py-0 bg-gradient-to-r from-orange-600 to-orange-600 slide-in-right">
           <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-4xl font-bold text-white mb-4 xl:mb-6 animate-pulse-once text-center leading-tight">
-            Welcome to OkBikes
+            Welcome to OkBike
           </h1>
 
           <div className="bg-white p-8 xl:p-12 shadow-lg w-full max-w-xl booking-form rounded-lg">
@@ -463,7 +484,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Why Choose OkBikes Section - Ultra responsive grid */}
+      {/* Why Choose OkBike Section - Ultra responsive grid */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-600 py-8 sm:py-10 md:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-center text-gray-800 mb-8 animate-bounce-once">

@@ -93,7 +93,7 @@ const InvoicePage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <img
-                  src="/okbikes.jpg"
+                  src="/okbike.jpg"
                   alt="okbike Logo"
                   className="h-10 w-16"
                 />
@@ -227,7 +227,7 @@ const InvoicePage = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <img src="/okbikes.jpg" alt="okbike Logo" className="h-10 w-14" />
+              <img src="/okbike.jpg" alt="okbike Logo" className="h-10 w-14" />
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-white text-right">

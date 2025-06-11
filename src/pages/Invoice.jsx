@@ -227,7 +227,7 @@ const totalAmount =
             <div className="flex items-center space-x-2">
               <img src="/okloggo.jpeg" alt="okbike Logo" className="h-12 w-20" />
               <div>
-                <h1 className="text-xl font-bold tracking-tight">OkBikes</h1>
+                <h1 className="text-xl font-bold tracking-tight">OkBike</h1>
                 <p className="text-orange-100 text-xs">Ride with confidence</p>
               </div>
             </div>
